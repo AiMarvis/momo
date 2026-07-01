@@ -1,67 +1,81 @@
-import { createSignal, For, Show } from "solid-js";
+import { createMemo, createSignal } from "solid-js";
 
 import { PlusIcon } from "~/components/icons";
 
-import { captureInboxNote } from "./inbox_capture";
-
-const lifeItems = [
-  { title: "Review lecture follow-ups", meta: "Life / People" },
-  { title: "Plan one daily block", meta: "Daily / Schedule" },
-  { title: "Capture loose errands", meta: "Inbox / Task" },
-] as const;
-
-const buildItems = [
-  { title: "Ship dashboard shell", meta: "Build / Issue" },
-  { title: "Check preserved Kuku surfaces", meta: "Search / Graph" },
-  { title: "Hold risky agent changes", meta: "Agent / Review" },
-] as const;
-
-interface LaneItem {
-  readonly title: string;
-  readonly meta: string;
-}
-
-function Lane(props: { title: string; subtitle: string; items: readonly LaneItem[] }) {
-  return (
-    <section class="min-w-0 rounded-xs border border-border bg-bg-secondary/70">
-      <div class="border-b border-border px-4 py-3">
-        <p class="text-[0.6875rem] font-semibold tracking-[0.14em] text-text-muted uppercase">
-          {props.title}
-        </p>
-        <p class="mt-1 text-xs text-text-secondary">{props.subtitle}</p>
-      </div>
-      <div class="divide-y divide-border">
-        <For each={props.items}>
-          {(item) => (
-            <article class="px-4 py-3">
-              <p class="truncate text-sm font-medium text-text-primary">{item.title}</p>
-              <p class="mt-1 text-[0.75rem] text-text-muted">{item.meta}</p>
-            </article>
-          )}
-        </For>
-      </div>
-    </section>
-  );
-}
+import {
+  createWorkIssue,
+  createWorkProject,
+  createWorkTask,
+  initWorkOsStore,
+  updateWorkIssuePriority,
+  updateWorkIssueStatus,
+  updateWorkTaskPriority,
+  updateWorkTaskStatus,
+  workOsState,
+  type WorkPriority,
+} from "./work_os_store";
+import { CalendarSection, IdeaSection } from "./work_os_calendar_ideas";
+import {
+  BUTTON_CLASS,
+  INPUT_CLASS,
+  Metric,
+  PrioritySelect,
+  ProjectList,
+  ProjectSelect,
+  SectionHeader,
+  WorkItemList,
+} from "./work_os_dashboard_parts";
 
 function TodayDashboard() {
-  const [captureText, setCaptureText] = createSignal("");
-  const [captureStatus, setCaptureStatus] = createSignal<"idle" | "saving" | "saved" | "empty">(
-    "idle",
+  initWorkOsStore();
+
+  const [taskTitle, setTaskTitle] = createSignal("");
+  const [taskScheduleDate, setTaskScheduleDate] = createSignal("");
+  const [issueTitle, setIssueTitle] = createSignal("");
+  const [projectName, setProjectName] = createSignal("");
+  const [projectScheduleDate, setProjectScheduleDate] = createSignal("");
+  const [taskProjectId, setTaskProjectId] = createSignal<string | null>(null);
+  const [taskPriority, setTaskPriority] = createSignal<WorkPriority>("medium");
+  const [issuePriority, setIssuePriority] = createSignal<WorkPriority>("medium");
+
+  const activeTaskCount = createMemo(
+    () => workOsState.tasks.filter((task) => task.status !== "done").length,
+  );
+  const activeProjectCount = createMemo(
+    () => workOsState.projects.filter((project) => project.status !== "done").length,
   );
 
-  async function submitQuickCapture(event: SubmitEvent): Promise<void> {
+  function submitTask(event: SubmitEvent): void {
     event.preventDefault();
-    setCaptureStatus("saving");
+    if (!taskTitle().trim()) return;
+    createWorkTask({
+      title: taskTitle(),
+      projectId: taskProjectId(),
+      priority: taskPriority(),
+      scheduleDate: taskScheduleDate() || null,
+    });
+    setTaskTitle("");
+    setTaskScheduleDate("");
+  }
 
-    const result = await captureInboxNote(captureText());
-    if (result.status === "empty") {
-      setCaptureStatus("empty");
-      return;
-    }
+  function submitIssue(event: SubmitEvent): void {
+    event.preventDefault();
+    if (!issueTitle().trim()) return;
+    createWorkIssue({
+      title: issueTitle(),
+      projectId: null,
+      priority: issuePriority(),
+    });
+    setIssueTitle("");
+  }
 
-    setCaptureText("");
-    setCaptureStatus("saved");
+  function submitProject(event: SubmitEvent): void {
+    event.preventDefault();
+    if (!projectName().trim()) return;
+    const project = createWorkProject(projectName(), projectScheduleDate() || null);
+    setTaskProjectId(project.id);
+    setProjectName("");
+    setProjectScheduleDate("");
   }
 
   return (
@@ -73,98 +87,118 @@ function TodayDashboard() {
               <p class="text-[0.6875rem] font-semibold tracking-[0.16em] text-text-muted uppercase">
                 Today
               </p>
-              <h1 class="mt-1 text-[1.15rem] font-semibold text-text-primary">Momo workspace</h1>
+              <h1 class="mt-1 text-[1.15rem] font-semibold text-text-primary">
+                Today operations
+              </h1>
+              <p class="mt-1 max-w-2xl text-xs text-text-secondary">
+                Create work, assign priority, and move the day through status from one quiet
+                dashboard.
+              </p>
             </div>
-            <div class="grid grid-cols-3 gap-2 text-right text-[0.6875rem] text-text-muted">
-              <div class="rounded-xs border border-border bg-bg-primary px-2 py-1.5">
-                <p class="text-text-secondary">Life</p>
-                <p>3 items</p>
-              </div>
-              <div class="rounded-xs border border-border bg-bg-primary px-2 py-1.5">
-                <p class="text-text-secondary">Build</p>
-                <p>3 items</p>
-              </div>
-              <div class="rounded-xs border border-border bg-bg-primary px-2 py-1.5">
-                <p class="text-text-secondary">Agent</p>
-                <p>Idle</p>
-              </div>
+            <div class="grid min-w-56 grid-cols-3 gap-2 text-right">
+              <Metric label="Tasks" value={activeTaskCount()} />
+              <Metric label="Projects" value={activeProjectCount()} />
+              <Metric label="Issues" value={workOsState.issues.length} />
             </div>
           </div>
         </header>
 
-        <section class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <Lane
-            title="Life"
-            subtitle="People, meetings, errands, and follow-ups"
-            items={lifeItems}
-          />
-          <Lane
-            title="Build"
-            subtitle="Apps, services, product work, and issues"
-            items={buildItems}
-          />
-        </section>
-
-        <section class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-          <form
-            class="rounded-xs border border-border bg-bg-secondary/70 p-4"
-            onSubmit={(event) => void submitQuickCapture(event)}
-          >
-            <div class="flex items-center justify-between gap-3">
-              <div>
-                <p class="text-sm font-medium text-text-primary">Quick Inbox</p>
-                <p class="mt-1 text-xs text-text-secondary">Preserved source note</p>
-              </div>
-              <span class="shrink-0 rounded-xs border border-border bg-bg-primary px-2 py-1 text-[0.6875rem] text-text-muted">
-                Inbox
-              </span>
-            </div>
-            <div class="mt-3 flex min-w-0 gap-2">
+        <section class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <section class="rounded-xs border border-border bg-bg-secondary/70 p-4">
+            <SectionHeader title="Tasks" detail="What needs movement today" />
+            <form
+              class="mt-3 grid gap-2 md:grid-cols-[minmax(0,1fr)_10rem_8.5rem_8rem_auto]"
+              onSubmit={submitTask}
+            >
               <input
-                class="min-w-0 flex-1 rounded-xs border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary transition-colors outline-none placeholder:text-text-muted focus:border-text-muted"
-                aria-label="Quick Inbox capture"
-                value={captureText()}
-                placeholder="lecture followup with Minji"
-                onInput={(event) => {
-                  setCaptureText(event.currentTarget.value);
-                  if (captureStatus() !== "idle") setCaptureStatus("idle");
-                }}
+                class={INPUT_CLASS}
+                aria-label="Task title"
+                value={taskTitle()}
+                placeholder="Task title"
+                onInput={(event) => setTaskTitle(event.currentTarget.value)}
               />
-              <button
-                type="submit"
-                class="flex shrink-0 items-center gap-1.5 rounded-xs border border-border bg-bg-primary px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-ghost-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={captureStatus() === "saving"}
-                title="Capture to Inbox"
-              >
+              <ProjectSelect value={taskProjectId()} onChange={setTaskProjectId} />
+              <input
+                class={INPUT_CLASS}
+                aria-label="Task date"
+                type="date"
+                value={taskScheduleDate()}
+                onInput={(event) => setTaskScheduleDate(event.currentTarget.value)}
+              />
+              <PrioritySelect value={taskPriority()} onChange={setTaskPriority} />
+              <button type="submit" class={BUTTON_CLASS}>
                 <PlusIcon size={14} />
-                <span>Capture</span>
+                <span>Create task</span>
               </button>
-            </div>
-            <Show when={captureStatus() === "saved"}>
-              <p class="mt-2 text-[0.75rem] text-text-muted">Saved to Inbox</p>
-            </Show>
-            <Show when={captureStatus() === "empty"}>
-              <p class="mt-2 text-[0.75rem] text-warning">Write something to capture.</p>
-            </Show>
-          </form>
+            </form>
+            <WorkItemList
+              emptyLabel="No tasks yet"
+              items={workOsState.tasks}
+              onPriority={updateWorkTaskPriority}
+              onStatus={updateWorkTaskStatus}
+            />
+          </section>
 
-          <aside class="rounded-xs border border-border bg-bg-secondary/70 p-4">
-            <p class="text-sm font-medium text-text-primary">Agent</p>
-            <p class="mt-1 text-xs text-text-secondary">Organize Inbox</p>
-            <div class="mt-3 space-y-2 text-[0.75rem] text-text-muted">
-              <p class="rounded-xs border border-border bg-bg-primary px-2 py-1.5">
-                Setup required
-              </p>
-              <p class="rounded-xs border border-border bg-bg-primary px-2 py-1.5">Idle</p>
-              <p class="rounded-xs border border-border bg-bg-primary px-2 py-1.5">Running</p>
-              <p class="rounded-xs border border-border bg-bg-primary px-2 py-1.5">
-                Change receipt
-              </p>
-              <p class="rounded-xs border border-warning-border bg-warning-bg px-2 py-1.5 text-warning">
-                Held risky
-              </p>
-            </div>
-          </aside>
+          <section class="grid gap-4">
+            <CalendarSection />
+
+            <section class="rounded-xs border border-border bg-bg-secondary/70 p-4">
+              <SectionHeader title="Projects" detail="Independent work streams" />
+              <form
+                class="mt-3 grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_8.5rem_auto]"
+                onSubmit={submitProject}
+              >
+                <input
+                  class={INPUT_CLASS}
+                  aria-label="Project name"
+                  value={projectName()}
+                  placeholder="Project name"
+                  onInput={(event) => setProjectName(event.currentTarget.value)}
+                />
+                <input
+                  class={INPUT_CLASS}
+                  aria-label="Project date"
+                  type="date"
+                  value={projectScheduleDate()}
+                  onInput={(event) => setProjectScheduleDate(event.currentTarget.value)}
+                />
+                <button type="submit" class={BUTTON_CLASS}>
+                  <PlusIcon size={14} />
+                  <span>Create</span>
+                </button>
+              </form>
+              <ProjectList projects={workOsState.projects} />
+            </section>
+
+            <section class="rounded-xs border border-border bg-bg-secondary/70 p-4">
+              <SectionHeader title="Issues" detail="Open decisions and blockers" />
+              <form
+                class="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem_auto]"
+                onSubmit={submitIssue}
+              >
+                <input
+                  class={INPUT_CLASS}
+                  aria-label="Issue title"
+                  value={issueTitle()}
+                  placeholder="Issue title"
+                  onInput={(event) => setIssueTitle(event.currentTarget.value)}
+                />
+                <PrioritySelect value={issuePriority()} onChange={setIssuePriority} />
+                <button type="submit" class={BUTTON_CLASS}>
+                  <PlusIcon size={14} />
+                  <span>Create</span>
+                </button>
+              </form>
+              <WorkItemList
+                emptyLabel="No issues yet"
+                items={workOsState.issues}
+                onPriority={updateWorkIssuePriority}
+                onStatus={updateWorkIssueStatus}
+              />
+            </section>
+
+            <IdeaSection />
+          </section>
         </section>
       </div>
     </main>

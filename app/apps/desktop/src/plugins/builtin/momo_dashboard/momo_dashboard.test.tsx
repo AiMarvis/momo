@@ -80,23 +80,37 @@ describe("Momo dashboard shell", () => {
     expect(layout.layoutState.activeRightPanelViewId).toBe("ai-chat.panel");
   });
 
-  it("renders Life and Build lanes plus expected operational entries", async () => {
+  it("renders Today as an independent Work OS dashboard", async () => {
     const { MOMO_OPERATION_ENTRIES } = await import("./navigation");
     const { TodayDashboard } = await import("./today_dashboard");
 
     const html = renderToString(() => <TodayDashboard />);
     const labels = MOMO_OPERATION_ENTRIES.map((entry) => entry.label);
 
-    expect(html).toContain("Life");
-    expect(html).toContain("Build");
-    expect(html).toContain("Quick Inbox");
-    expect(html).toContain("Agent");
+    expect(html).toContain("Today operations");
+    expect(html).toContain("Create task");
+    expect(html).toContain("Tasks");
+    expect(html).toContain("Projects");
+    expect(html).toContain("Issues");
+    expect(html).toContain("Calendar");
+    expect(html).toContain("Ideas");
+    expect(html).toContain("Task date");
+    expect(html).toContain("Project date");
+    expect(html).toContain("No scheduled work yet");
+    expect(html).toContain("No ideas yet");
+    expect(html).toContain("No tasks yet");
+    expect(html).not.toContain("Start with your own Markdown files");
+    expect(html).not.toContain("Markdown");
+    expect(html).not.toContain("open a vault");
+    expect(html).not.toContain("lecture followup with Minji");
+    expect(html).not.toContain("Review lecture follow-ups");
+    expect(html).not.toContain("Ship dashboard shell");
     expect(labels).toEqual([
       "Today",
-      "Inbox",
       "Tasks",
       "Projects",
       "Issues",
+      "Inbox",
       "Daily",
       "Knowledge",
       "Search",
