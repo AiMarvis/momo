@@ -863,7 +863,7 @@ mod tests {
             updated_at: "2026-05-07T00:00:00Z".to_string(),
             proposal_id: "prop_session_cookie".to_string(),
             decision_document: "Knowledge/decisions/2026-05-07-session-cookie.md".to_string(),
-            body: "Kuku should implement session cookie auth first.".to_string(),
+            body: "Momo should implement session cookie auth first.".to_string(),
         };
 
         let markdown = serialize_memory_item(&item).unwrap();
@@ -882,7 +882,7 @@ updated_at: 2026-05-07T00:00:00Z\n\
 proposal_id: prop_session_cookie\n\
 decision_document: Knowledge/decisions/2026-05-07-session-cookie.md\n\
 ---\n\
-Kuku should implement session cookie auth first.\n"
+Momo should implement session cookie auth first.\n"
         );
 
         let parsed = parse_memory_item(&markdown).unwrap();
@@ -890,7 +890,7 @@ Kuku should implement session cookie auth first.\n"
         assert_eq!(parsed.kind, item.kind);
         assert_eq!(
             parsed.body,
-            "Kuku should implement session cookie auth first.\n"
+            "Momo should implement session cookie auth first.\n"
         );
         assert_eq!(serialize_memory_item(&parsed).unwrap(), markdown);
     }

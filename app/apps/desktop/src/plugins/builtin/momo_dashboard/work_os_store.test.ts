@@ -40,7 +40,11 @@ describe("Work OS store", () => {
   it("creates projects and tasks independently from vault files", async () => {
     const store = await loadStore();
 
-    const project = store.createWorkProject("Desktop app", "2026-07-03");
+    const project = store.createWorkProject({
+      name: "Desktop app",
+      startDate: "2026-07-03",
+      endDate: "2026-07-05",
+    });
     const task = store.createWorkTask({
       title: "Triage today's work",
       projectId: project.id,
@@ -53,7 +57,13 @@ describe("Work OS store", () => {
     store.updateWorkProjectStatus(project.id, "paused");
 
     expect(store.workOsState.projects).toMatchObject([
-      { id: project.id, name: "Desktop app", scheduleDate: "2026-07-03", status: "paused" },
+      {
+        id: project.id,
+        name: "Desktop app",
+        startDate: "2026-07-03",
+        endDate: "2026-07-05",
+        status: "paused",
+      },
     ]);
     expect(store.workOsState.tasks).toMatchObject([
       {
@@ -70,7 +80,7 @@ describe("Work OS store", () => {
   it("loads persisted work without sample data", async () => {
     const first = await loadStore();
 
-    const project = first.createWorkProject("Momo");
+    const project = first.createWorkProject({ name: "Momo" });
     first.createWorkTask({
       title: "Prepare dashboard",
       projectId: project.id,
@@ -84,13 +94,15 @@ describe("Work OS store", () => {
 
     expect(second.workOsState.projects).toHaveLength(1);
     expect(second.workOsState.projects[0]?.name).toBe("Momo");
+    expect(second.workOsState.projects[0]?.startDate).toBeNull();
+    expect(second.workOsState.projects[0]?.endDate).toBeNull();
     expect(second.workOsState.tasks).toHaveLength(1);
     expect(second.workOsState.tasks[0]?.title).toBe("Prepare dashboard");
     expect(second.workOsState.tasks[0]?.scheduleDate).toBe("2026-07-04");
     expect(second.workOsState.ideas).toMatchObject([{ id: idea.id, text: "Try sticky ideas" }]);
   });
 
-  it("normalizes invalid persisted dates and deletes ideas", async () => {
+  it("normalizes invalid persisted dates, migrates project scheduleDate, and deletes ideas", async () => {
     localStorage.setItem(
       "momo-work-os-v1",
       JSON.stringify({
@@ -109,9 +121,17 @@ describe("Work OS store", () => {
         projects: [
           {
             id: "project-1",
+            name: "Legacy project date",
+            status: "active",
+            scheduleDate: "2026-07-05",
+            createdAt: "2026-07-01T00:00:00.000Z",
+          },
+          {
+            id: "project-2",
             name: "Invalid project date",
             status: "active",
-            scheduleDate: "2026/07/05",
+            startDate: "2026/07/06",
+            endDate: "later",
             createdAt: "2026-07-01T00:00:00.000Z",
           },
         ],
@@ -125,7 +145,56 @@ describe("Work OS store", () => {
     store.deleteWorkIdea(idea.id);
 
     expect(store.workOsState.tasks[0]?.scheduleDate).toBeNull();
-    expect(store.workOsState.projects[0]?.scheduleDate).toBeNull();
+    expect(store.workOsState.projects[0]?.startDate).toBe("2026-07-05");
+    expect(store.workOsState.projects[0]?.endDate).toBe("2026-07-05");
+    expect(store.workOsState.projects[1]?.startDate).toBeNull();
+    expect(store.workOsState.projects[1]?.endDate).toBeNull();
     expect(store.workOsState.ideas).toHaveLength(0);
+  });
+
+  it("deletes a task without touching related project or issue rows", async () => {
+    const store = await loadStore();
+
+    const project = store.createWorkProject({ name: "Delete task project" });
+    const task = store.createWorkTask({
+      title: "Delete only this to-do",
+      projectId: project.id,
+      priority: "medium",
+      scheduleDate: "2026-07-06",
+    });
+    const issue = store.createWorkIssue({
+      title: "Keep linked issue",
+      projectId: project.id,
+      priority: "high",
+    });
+
+    store.deleteWorkTask(task.id);
+
+    expect(store.workOsState.tasks).toHaveLength(0);
+    expect(store.workOsState.projects).toMatchObject([{ id: project.id }]);
+    expect(store.workOsState.issues).toMatchObject([{ id: issue.id, projectId: project.id }]);
+  });
+
+  it("deletes a project by unlinking related tasks and issues", async () => {
+    const store = await loadStore();
+
+    const project = store.createWorkProject({ name: "Archive project" });
+    const task = store.createWorkTask({
+      title: "Keep to-do",
+      projectId: project.id,
+      priority: "medium",
+      scheduleDate: "2026-07-07",
+    });
+    const issue = store.createWorkIssue({
+      title: "Keep issue",
+      projectId: project.id,
+      priority: "low",
+    });
+
+    store.deleteWorkProject(project.id);
+
+    expect(store.workOsState.projects).toHaveLength(0);
+    expect(store.workOsState.tasks).toMatchObject([{ id: task.id, projectId: null }]);
+    expect(store.workOsState.issues).toMatchObject([{ id: issue.id, projectId: null }]);
   });
 });

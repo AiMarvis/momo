@@ -1,10 +1,21 @@
-import type { AiConfig } from "./types";
+import type {
+  AiConfig,
+  ChatMode,
+  CodexApprovalPolicy,
+  CodexChatConfig,
+  CodexSandboxMode,
+} from "./types";
 
 const AI_CHAT_SETTINGS_PLUGIN_ID = "ai-chat";
 const AI_CHAT_SECURE_KEYS = ["apiKey"] as const;
 const LEGACY_MODEL_ALIASES = new Set(["gemini-3.1-flash-lite-preview"]);
 const DEFAULT_MODEL = "gemini-3.1-flash-lite";
 const DEFAULT_PROVIDER = "remote" as const;
+const DEFAULT_CHAT_MODE: ChatMode = "ask";
+const DEFAULT_CODEX_MODEL = "";
+const DEFAULT_CODEX_SANDBOX: CodexSandboxMode = "read-only";
+const DEFAULT_CODEX_APPROVAL_POLICY: CodexApprovalPolicy = "default";
+const DEFAULT_CODEX_WEB_SEARCH = false;
 const DEFAULT_SERVER_URL =
   import.meta.env.VITE_KUKU_API_URL?.trim() ||
   (import.meta.env.PROD ? "https://api.kuku.mom" : "http://localhost:8080");
@@ -18,6 +29,11 @@ function createDefaultAiConfig(): AiConfig {
     apiKey: null,
     model: DEFAULT_MODEL,
     serverUrl: DEFAULT_SERVER_URL,
+    defaultMode: DEFAULT_CHAT_MODE,
+    codexModel: DEFAULT_CODEX_MODEL,
+    codexSandbox: DEFAULT_CODEX_SANDBOX,
+    codexApprovalPolicy: DEFAULT_CODEX_APPROVAL_POLICY,
+    codexWebSearch: DEFAULT_CODEX_WEB_SEARCH,
     roundLimit: DEFAULT_ROUND_LIMIT,
     proxyToolTimeoutMs: DEFAULT_PROXY_TIMEOUT_MS,
   };
@@ -30,6 +46,40 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function normalizeAiModel(model: string): string {
   const trimmed = model.trim();
   return LEGACY_MODEL_ALIASES.has(trimmed) ? DEFAULT_MODEL : trimmed;
+}
+
+function normalizeChatMode(value: unknown): ChatMode {
+  switch (value) {
+    case "agent":
+    case "ask":
+    case "inline":
+      return value;
+    default:
+      return DEFAULT_CHAT_MODE;
+  }
+}
+
+function normalizeCodexSandbox(value: unknown): CodexSandboxMode {
+  switch (value) {
+    case "read-only":
+    case "workspace-write":
+    case "danger-full-access":
+      return value;
+    default:
+      return DEFAULT_CODEX_SANDBOX;
+  }
+}
+
+function normalizeCodexApprovalPolicy(value: unknown): CodexApprovalPolicy {
+  switch (value) {
+    case "default":
+    case "untrusted":
+    case "on-request":
+    case "never":
+      return value;
+    default:
+      return DEFAULT_CODEX_APPROVAL_POLICY;
+  }
 }
 
 function normalizeAiConfig(raw: unknown): AiConfig {
@@ -48,6 +98,11 @@ function normalizeAiConfig(raw: unknown): AiConfig {
       typeof raw.serverUrl === "string" && raw.serverUrl.trim().length > 0
         ? raw.serverUrl
         : defaults.serverUrl,
+    defaultMode: normalizeChatMode(raw.defaultMode),
+    codexModel: typeof raw.codexModel === "string" ? raw.codexModel.trim() : defaults.codexModel,
+    codexSandbox: normalizeCodexSandbox(raw.codexSandbox),
+    codexApprovalPolicy: defaults.codexApprovalPolicy,
+    codexWebSearch: defaults.codexWebSearch,
     roundLimit:
       typeof raw.roundLimit === "number" && Number.isFinite(raw.roundLimit) && raw.roundLimit > 0
         ? raw.roundLimit
@@ -61,14 +116,33 @@ function normalizeAiConfig(raw: unknown): AiConfig {
   };
 }
 
+function createCodexConfigFromAiConfig(
+  config: Pick<AiConfig, "codexModel" | "codexSandbox">,
+): CodexChatConfig {
+  const model = config.codexModel?.trim() ?? "";
+  return {
+    ...(model === "" ? {} : { model }),
+    sandbox: normalizeCodexSandbox(config.codexSandbox),
+  };
+}
+
 export {
   AI_CHAT_SETTINGS_PLUGIN_ID,
   AI_CHAT_SECURE_KEYS,
+  DEFAULT_CHAT_MODE,
+  DEFAULT_CODEX_APPROVAL_POLICY,
+  DEFAULT_CODEX_MODEL,
+  DEFAULT_CODEX_SANDBOX,
+  DEFAULT_CODEX_WEB_SEARCH,
   DEFAULT_MODEL,
   DEFAULT_PROVIDER,
   DEFAULT_PROXY_TIMEOUT_MS,
   DEFAULT_ROUND_LIMIT,
   DEFAULT_SERVER_URL,
   createDefaultAiConfig,
+  createCodexConfigFromAiConfig,
   normalizeAiConfig,
+  normalizeChatMode,
+  normalizeCodexApprovalPolicy,
+  normalizeCodexSandbox,
 };

@@ -1,6 +1,6 @@
 // ── Editor Engine ──
 //
-// ProseKit custom wrapper for the Kuku editor.
+// ProseKit custom wrapper for the Momo editor.
 //
 // Responsibilities:
 //   1. Define the base extension (doc, text, paragraph, history, base keymap)

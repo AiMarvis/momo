@@ -1,15 +1,30 @@
-import { createMemo, createResource, Match, Show, Switch, type JSX } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  Match,
+  Show,
+  Switch,
+} from "solid-js";
 
 import { OpenInTabIcon } from "~/components/icons";
 import { openTab } from "~/stores/files";
-import { vaultState } from "~/stores/vault";
+import { loadFiles, vaultState } from "~/stores/vault";
 
+import {
+  AgentActionButton,
+  AgentCard,
+  AgentRunFeedback,
+  type AgentPanelCopy,
+  type AgentRunState,
+} from "./agent_panel_cards";
+import {
+  defaultOrganizeInbox,
+  runOrganizeForPanel,
+  type MomoAgentPanelProps,
+} from "./agent_panel_runtime";
 import { getInboxAgentState, type InboxAgentState } from "./inbox_capture";
-
-interface AgentPanelCopy {
-  readonly title: string;
-  readonly detail: string;
-}
 
 async function loadAgentState(path: string | null): Promise<InboxAgentState> {
   if (path === null) return { kind: "empty" };
@@ -68,8 +83,10 @@ function ViewReceiptButton(props: { agentRun: string }) {
   );
 }
 
-function MomoAgentPanel() {
-  const [agentState] = createResource(() => vaultState.selectedPath, loadAgentState);
+function MomoAgentPanel(props: MomoAgentPanelProps = {}) {
+  const [runState, setRunState] = createSignal<AgentRunState>({ kind: "idle" });
+  const [agentState, { refetch }] = createResource(() => vaultState.selectedPath, loadAgentState);
+  const organizeInbox = props.organizeInbox ?? defaultOrganizeInbox;
   const readyState = createMemo(() => {
     const state = agentState();
     return state?.kind === "ready" ? state : null;
@@ -93,6 +110,12 @@ function MomoAgentPanel() {
     }
     return null;
   });
+
+  createEffect((previousPath: string | null | undefined) => {
+    const selectedPath = vaultState.selectedPath;
+    if (selectedPath !== previousPath) setRunState({ kind: "idle" });
+    return selectedPath;
+  }, undefined);
 
   return (
     <section class="flex h-full flex-col bg-bg-secondary" data-momo-surface="agent-panel">
@@ -122,13 +145,22 @@ function MomoAgentPanel() {
                   title={agentPanelCopyForState(state()).title}
                   detail={agentPanelCopyForState(state()).detail}
                 >
-                  <button
-                    type="button"
-                    class="mt-3 rounded-xs border border-border bg-bg-primary px-2 py-1.5 text-left text-[0.75rem] text-text-muted"
-                    disabled
-                  >
-                    Organize Inbox
-                  </button>
+                  <AgentActionButton
+                    running={runState().kind === "running"}
+                    onClick={() =>
+                      void runOrganizeForPanel({
+                        sourceNote: state().path,
+                        organizeInbox,
+                        rootPath: vaultState.rootPath,
+                        reloadVault: loadFiles,
+                        refetchAgentState: async () => {
+                          await refetch();
+                        },
+                        setRunState,
+                      })
+                    }
+                  />
+                  <AgentRunFeedback state={runState()} />
                 </AgentCard>
               )}
             </Match>
@@ -173,21 +205,5 @@ function MomoAgentPanel() {
   );
 }
 
-function AgentCard(props: {
-  readonly title: string;
-  readonly detail: string;
-  readonly children?: JSX.Element;
-}) {
-  return (
-    <article class="rounded-xs border border-border bg-bg-primary p-3">
-      <div class="flex items-center justify-between gap-2">
-        <p class="text-sm font-medium text-text-primary">{props.title}</p>
-        <span class="size-1.5 rounded-full bg-text-muted" />
-      </div>
-      <p class="mt-1 text-xs wrap-break-word text-text-muted">{props.detail}</p>
-      {props.children}
-    </article>
-  );
-}
-
 export { MomoAgentPanel, agentPanelCopyForState };
+export type { MomoAgentPanelProps };

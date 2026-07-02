@@ -7,7 +7,7 @@ interface Props {
 const { title, description } = Astro.props;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 const openGraphImageUrl = new URL('/open-graph-v2.jpg', Astro.site).href;
-const openGraphImageAlt = 'kuku — AI-native Markdown workspace';
+const openGraphImageAlt = 'Momo — AI-native Markdown workspace';
 ---
 
 <meta charset="utf-8" />
@@ -17,7 +17,7 @@ const openGraphImageAlt = 'kuku — AI-native Markdown workspace';
 <title>{title}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={canonicalUrl} />
-<link rel="icon" type="image/svg+xml" href="/logo.svg" />
+<link rel="icon" type="image/png" href="/logo.png" />
 
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,7 +28,7 @@ const openGraphImageAlt = 'kuku — AI-native Markdown workspace';
 />
 
 <meta property="og:type" content="website" />
-<meta property="og:site_name" content="kuku" />
+<meta property="og:site_name" content="Momo" />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:url" content={canonicalUrl} />

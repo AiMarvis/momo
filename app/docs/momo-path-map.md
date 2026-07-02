@@ -73,4 +73,4 @@ Pinned upstream: `ea07b629ead912ada70442e8c87ae90359742d33` (`kuku-mom/kuku`).
 - Desktop TS tests: `pnpm --dir apps/desktop vitest run`
 - Desktop dev app: `pnpm --dir apps/desktop tauri:dev`
 - Moon desktop tasks: `moon run desktop:check`, `moon run desktop:test`, `moon run desktop:build`
-- Rust desktop tests: `cargo test -p kuku-app`
+- Rust desktop tests: `cargo test -p momo`

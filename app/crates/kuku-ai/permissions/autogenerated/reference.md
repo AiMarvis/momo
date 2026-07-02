@@ -5,7 +5,6 @@ Allows the AI plugin commands.
 #### This default permission set includes the following:
 
 - `allow-ai-new-session`
-- `allow-ai-send-message`
 - `allow-ai-cancel`
 - `allow-ai-get-config`
 - `allow-ai-set-config`
@@ -203,32 +202,6 @@ Enables the ai_resolve_approval command without any pre-configured scope.
 <td>
 
 Denies the ai_resolve_approval command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`kuku-ai:allow-ai-send-message`
-
-</td>
-<td>
-
-Enables the ai_send_message command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`kuku-ai:deny-ai-send-message`
-
-</td>
-<td>
-
-Denies the ai_send_message command without any pre-configured scope.
 
 </td>
 </tr>

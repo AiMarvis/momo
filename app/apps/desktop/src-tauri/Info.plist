@@ -6,9 +6,11 @@
     <array>
         <dict>
             <key>CFBundleURLName</key>
-            <string>com.kuku.app</string>
+            <string>com.momo.app</string>
             <key>CFBundleURLSchemes</key>
             <array>
+                <string>momo</string>
+                <string>com.momo.app</string>
                 <string>kuku</string>
                 <string>com.kuku.app</string>
             </array>

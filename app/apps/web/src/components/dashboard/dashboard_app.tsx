@@ -275,13 +275,13 @@ export default function DashboardApp(props: DashboardAppProps) {
         >
           <img
             class="lp-brand-logo"
-            src="/logo.svg"
+            src="/logo.png"
             alt=""
             width="52"
             height="52"
             decoding="async"
           />
-          <span class="lp-brand-tagline-text">kuku.mom</span>
+          <span class="lp-brand-tagline-text">momo</span>
         </a>
 
         <div class="dashboard-user">
@@ -459,7 +459,7 @@ export default function DashboardApp(props: DashboardAppProps) {
           <Match when={route() === "downloads"}>
             <DashboardPanel title="Desktop App">
               <p class="muted-copy">Download the latest macOS build.</p>
-              <a class="dashboard-action-link" href="https://www.kuku.mom">
+              <a class="dashboard-action-link" href="/">
                 Download for macOS
               </a>
             </DashboardPanel>

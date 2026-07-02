@@ -1,4 +1,5 @@
-use std::path::Path;
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::time::Duration;
 
@@ -8,6 +9,8 @@ use tokio::process::Command;
 use tokio::time::timeout;
 
 use crate::plugin_secrets;
+
+mod codex;
 
 const CODEX_LOGIN_STATUS_CHECK: &str = "codex login status";
 const CODEX_CHECK_TIMEOUT: Duration = Duration::from_secs(6);
@@ -69,8 +72,22 @@ pub async fn agent_clear_openai_api_key() -> Result<OpenAiApiKeyStatus, String> 
     openai_api_key_status()
 }
 
+#[command]
+pub async fn agent_create_codex_plan(
+    request: codex::AgentPlanRequest,
+) -> codex::AgentProviderOutput {
+    codex::create_codex_plan(request).await
+}
+
+#[command]
+pub async fn agent_run_codex_chat(
+    request: codex::CodexChatRequest,
+) -> Result<codex::CodexChatResponse, String> {
+    codex::run_codex_chat(request).await
+}
+
 async fn check_codex_readiness() -> CodexReadiness {
-    if !executable_on_path("codex") {
+    if codex_executable().is_none() {
         return readiness(CodexReadinessStatus::CodexCliNotFound, None, false);
     }
 
@@ -86,7 +103,10 @@ async fn check_codex_readiness() -> CodexReadiness {
 }
 
 async fn run_codex_login_status() -> CodexStatusCommand {
-    let child = match Command::new("codex")
+    let Some(codex_path) = codex_executable() else {
+        return CodexStatusCommand::LoginRequired(None);
+    };
+    let child = match Command::new(codex_path)
         .args(["login", "status"])
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -158,14 +178,54 @@ enum CodexStatusCommand {
     TimedOut,
 }
 
-fn executable_on_path(name: &str) -> bool {
-    let Some(path) = std::env::var_os("PATH") else {
-        return false;
-    };
-    std::env::split_paths(&path).any(|dir| executable_exists(&dir.join(name)))
+fn codex_executable() -> Option<PathBuf> {
+    let path = std::env::var_os("PATH");
+    resolve_executable("codex", path.as_deref(), &codex_candidate_paths())
+}
+
+fn codex_candidate_paths() -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    if let Some(home) = std::env::var_os("HOME") {
+        paths.push(PathBuf::from(home).join(".local/bin/codex"));
+    }
+    paths.push(PathBuf::from("/opt/homebrew/bin/codex"));
+    paths.push(PathBuf::from("/usr/local/bin/codex"));
+    paths
+}
+
+fn resolve_executable(name: &str, path: Option<&OsStr>, candidates: &[PathBuf]) -> Option<PathBuf> {
+    if let Some(path) = path {
+        if let Some(found) = std::env::split_paths(path)
+            .map(|dir| dir.join(name))
+            .find(|candidate| executable_exists(candidate))
+        {
+            return Some(found);
+        }
+    }
+    candidates
+        .iter()
+        .find(|candidate| executable_exists(candidate))
+        .cloned()
 }
 
 fn executable_exists(path: &Path) -> bool {
+    if !path.is_file() {
+        return false;
+    }
+    executable_has_execute_bit(path)
+}
+
+#[cfg(unix)]
+fn executable_has_execute_bit(path: &Path) -> bool {
+    use std::os::unix::fs::PermissionsExt;
+
+    std::fs::metadata(path)
+        .map(|metadata| metadata.permissions().mode() & 0o111 != 0)
+        .unwrap_or(false)
+}
+
+#[cfg(not(unix))]
+fn executable_has_execute_bit(path: &Path) -> bool {
     path.is_file()
 }
 
@@ -183,66 +243,4 @@ fn delete_openai_api_key() -> Result<(), String> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn readiness_reports_missing_codex_without_exit_code() {
-        let result = readiness(CodexReadinessStatus::CodexCliNotFound, None, false);
-
-        assert!(!result.ready);
-        assert_eq!(result.status, CodexReadinessStatus::CodexCliNotFound);
-        assert_eq!(result.exit_code, None);
-        assert!(!result.timed_out);
-    }
-
-    #[test]
-    fn readiness_reports_login_required_with_exit_code() {
-        let result = readiness(CodexReadinessStatus::LoginRequired, Some(1), false);
-
-        assert!(!result.ready);
-        assert_eq!(result.status, CodexReadinessStatus::LoginRequired);
-        assert_eq!(result.exit_code, Some(1));
-    }
-
-    #[test]
-    fn readiness_reports_timeout_without_exit_code() {
-        let result = readiness(CodexReadinessStatus::CheckTimedOut, None, true);
-
-        assert!(!result.ready);
-        assert_eq!(result.status, CodexReadinessStatus::CheckTimedOut);
-        assert_eq!(result.exit_code, None);
-        assert!(result.timed_out);
-    }
-
-    #[test]
-    fn zero_exit_logged_out_output_is_login_required() {
-        let result = classify_codex_login_status(
-            true,
-            Some(0),
-            b"Not logged in. Run codex login to continue.",
-            b"",
-        );
-
-        assert_eq!(result, CodexStatusCommand::LoginRequired(Some(0)));
-    }
-
-    #[test]
-    fn readiness_serialization_excludes_command_output() {
-        let result = readiness(CodexReadinessStatus::LoginRequired, Some(0), false);
-        let json = serde_json::to_string(&result).unwrap();
-
-        assert!(json.contains("\"status\":\"login_required\""));
-        assert!(!json.contains("Not logged in"));
-        assert!(!json.contains("stdout"));
-        assert!(!json.contains("stderr"));
-    }
-
-    #[test]
-    fn openai_key_uses_plugin_secret_keychain_account() {
-        assert_eq!(
-            plugin_secrets::secret_account(AI_CHAT_PLUGIN_ID, OPENAI_API_KEY_FIELD).unwrap(),
-            "ai-chat:openaiApiKey"
-        );
-    }
-}
+mod tests;

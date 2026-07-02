@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Kuku Editor Styles
+   Momo Editor Styles
    ───────────────────────────────────────────────────────────────────────────
    All typography values use relative units (em/rem) so that changing
    --editor-font-size scales everything consistently.
@@ -973,7 +973,7 @@ prosekit-table-handle-drop-indicator {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Table (Kuku overrides)
+   Table (Momo overrides)
    ───────────────────────────────────────────────────────────────────────────
    Borders, selected-cell highlight, and resize-handle theming applied
    inside .tableWrapper for higher specificity.

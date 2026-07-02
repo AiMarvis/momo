@@ -70,7 +70,7 @@ describe("agent provider adapters", () => {
     expect(askApproval).not.toHaveBeenCalled();
   });
 
-  it("asks approval when Codex fails with BYOK ready and decline does not call OpenAI", async () => {
+  it("returns the Codex failure without asking for OpenAI fallback", async () => {
     const askApproval = vi.fn(async () => false);
     const openAiPlan = vi.fn(async () =>
       validPlan({
@@ -93,17 +93,23 @@ describe("agent provider adapters", () => {
       nowIso: () => FALLBACK_APPROVED_AT,
     });
 
-    expect(askApproval).toHaveBeenCalledOnce();
+    expect(askApproval).not.toHaveBeenCalled();
     expect(openAiPlan).not.toHaveBeenCalled();
     expect(result).toEqual({
       kind: "invalid",
-      errors: ["OpenAI fallback was not approved"],
+      errors: ["Codex exited before returning a plan."],
     });
   });
 
-  it("uses direct OpenAI when Codex is not ready without fallback metadata", async () => {
+  it("does not use direct OpenAI when Codex is not ready", async () => {
     const askApproval = vi.fn(async () => false);
     const codexPlan = vi.fn(async () => failedCodexPlan());
+    const openAiPlan = vi.fn(async () =>
+      validPlan({
+        kind: "openai_api",
+        name: "openai",
+      }),
+    );
 
     const result = await runAgentProviderAdapters({
       sourceNote: SOURCE_NOTE,
@@ -113,37 +119,29 @@ describe("agent provider adapters", () => {
       },
       openai: {
         byokReady: async () => true,
-        createPlan: vi.fn(async () =>
-          validPlan({
-            kind: "openai_api",
-            name: "openai",
-          }),
-        ),
+        createPlan: openAiPlan,
       },
       askOpenAiFallbackApproval: askApproval,
       nowIso: () => FALLBACK_APPROVED_AT,
     });
 
-    expect(result).toMatchObject({
-      kind: "valid",
-      plan: {
-        provider: {
-          kind: "openai_api",
-          name: "openai",
-        },
-      },
+    expect(result).toEqual({
+      kind: "invalid",
+      errors: ["Codex CLI setup required"],
     });
-    if (result.kind === "valid") {
-      expect(result.plan.provider.fallbackFrom).toBeUndefined();
-      expect(result.plan.provider.fallbackReason).toBeUndefined();
-      expect(result.plan.provider.fallbackApprovedAt).toBeUndefined();
-    }
     expect(codexPlan).not.toHaveBeenCalled();
+    expect(openAiPlan).not.toHaveBeenCalled();
     expect(askApproval).not.toHaveBeenCalled();
   });
 
-  it("uses OpenAI after approval and returns provider metadata with fallback details", async () => {
+  it("does not use OpenAI after approval when Codex fails", async () => {
     const askApproval = vi.fn(async () => true);
+    const openAiPlan = vi.fn(async () =>
+      validPlan({
+        kind: "openai_api",
+        name: "openai",
+      }),
+    );
 
     const result = await runAgentProviderAdapters({
       sourceNote: SOURCE_NOTE,
@@ -153,29 +151,18 @@ describe("agent provider adapters", () => {
       },
       openai: {
         byokReady: async () => true,
-        createPlan: vi.fn(async () =>
-          validPlan({
-            kind: "openai_api",
-            name: "openai",
-          }),
-        ),
+        createPlan: openAiPlan,
       },
       askOpenAiFallbackApproval: askApproval,
       nowIso: () => FALLBACK_APPROVED_AT,
     });
 
-    expect(result).toMatchObject({
-      kind: "valid",
-      plan: {
-        provider: {
-          kind: "openai_api",
-          name: "openai",
-          fallbackFrom: "codex_cli",
-          fallbackReason: "Codex exited before returning a plan.",
-          fallbackApprovedAt: FALLBACK_APPROVED_AT,
-        },
-      },
+    expect(result).toEqual({
+      kind: "invalid",
+      errors: ["Codex exited before returning a plan."],
     });
+    expect(openAiPlan).not.toHaveBeenCalled();
+    expect(askApproval).not.toHaveBeenCalled();
   });
 
   it("returns invalid validation for invalid JSON and schema without vault mutation shape", async () => {
@@ -220,6 +207,39 @@ describe("agent provider adapters", () => {
       expect(result).not.toHaveProperty("approvalRequired");
       expect(result).not.toHaveProperty("vaultChanges");
     }
+  });
+
+  it("rejects provider output that claims OpenAI fallback metadata", async () => {
+    const result = await runAgentProviderAdapters({
+      sourceNote: SOURCE_NOTE,
+      codex: {
+        ready: async () => true,
+        createPlan: vi.fn(async () =>
+          validPlan({
+            kind: "openai_api",
+            name: "openai",
+            fallbackFrom: "codex_cli",
+            fallbackReason: "Codex failed",
+            fallbackApprovedAt: FALLBACK_APPROVED_AT,
+          }),
+        ),
+      },
+      openai: {
+        byokReady: async () => false,
+        createPlan: vi.fn(async () =>
+          validPlan({
+            kind: "openai_api",
+            name: "openai",
+          }),
+        ),
+      },
+      askOpenAiFallbackApproval: vi.fn(async () => false),
+    });
+
+    expect(result).toEqual({
+      kind: "invalid",
+      errors: ["plan.provider.kind must be codex_cli"],
+    });
   });
 
   it("aborts a slow provider and returns an invalid timeout summary", async () => {

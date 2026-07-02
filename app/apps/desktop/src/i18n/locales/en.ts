@@ -16,7 +16,7 @@ export const EN_MESSAGES = {
   "settings.plugin.graph_view": "Graph View",
   "settings.plugin.voxel_graph": "Agent World",
   "settings.plugin.account.title": "Account",
-  "settings.plugin.account.description": "Control which plugins can use your Kuku server session.",
+  "settings.plugin.account.description": "Control which plugins can use your Momo server session.",
   "settings.plugin.account.action.opening": "Opening...",
   "settings.plugin.account.action.sign_in": "Sign in",
   "settings.plugin.account.action.sign_out": "Sign out",
@@ -32,7 +32,7 @@ export const EN_MESSAGES = {
   "settings.plugin.account.authorizations.empty":
     "No plugin has requested server session access yet.",
   "settings.plugin.account.authorizations.item_description":
-    "Allow this plugin to use your Kuku server session.",
+    "Allow this plugin to use your Momo server session.",
   "settings.plugin.indexer.title": "Indexer",
   "settings.plugin.indexer.description":
     "Manage search, wikilink graph indexing, and refresh policy.",
@@ -205,7 +205,7 @@ export const EN_MESSAGES = {
   "settings.plugin.ai_chat.guide.title": "Quick guide",
   "settings.plugin.ai_chat.guide.connection_label": "Connection:",
   "settings.plugin.ai_chat.guide.connection_before_link":
-    "“Kuku” uses the account you’re signed in with. If you already use a Kuku account, that’s the easy path: sign in once and you’re good — you usually don’t need to tweak this page. “My Gemini API key” is for your own key from Google’s",
+    "“Momo” uses the account you’re signed in with. If you already use a Momo account, that’s the easy path: sign in once and you’re good — you usually don’t need to tweak this page. “My Gemini API key” is for your own key from Google’s",
   "settings.plugin.ai_chat.guide.connection_after_link": "(free tier is enough to try).",
   "settings.plugin.ai_chat.guide.save_label": "Save",
   "settings.plugin.ai_chat.guide.save_text":
@@ -224,6 +224,31 @@ export const EN_MESSAGES = {
   "settings.plugin.ai_chat.agent_provider.check_again": "Check again",
   "settings.plugin.ai_chat.agent_provider.checking": "Checking...",
   "settings.plugin.ai_chat.agent_provider.copy_diagnostic": "Copy diagnostic",
+  "settings.plugin.ai_chat.codex_settings.default_mode.label": "Default mode",
+  "settings.plugin.ai_chat.codex_settings.default_mode.description":
+    "The chat mode selected when AI Chat opens.",
+  "settings.plugin.ai_chat.codex_settings.model.label": "OpenAI model",
+  "settings.plugin.ai_chat.codex_settings.model.description":
+    "Passed to Codex CLI as --model. Leave empty to use the Codex default.",
+  "settings.plugin.ai_chat.codex_settings.model.placeholder": "Codex default",
+  "settings.plugin.ai_chat.codex_settings.model.custom": "Custom",
+  "settings.plugin.ai_chat.codex_settings.sandbox.label": "File access",
+  "settings.plugin.ai_chat.codex_settings.sandbox.description":
+    "Passed to Codex CLI as the sandbox mode.",
+  "settings.plugin.ai_chat.codex_settings.sandbox.read_only": "Read only",
+  "settings.plugin.ai_chat.codex_settings.sandbox.workspace_write": "Workspace write",
+  "settings.plugin.ai_chat.codex_settings.sandbox.danger_full_access": "Full access",
+  "settings.plugin.ai_chat.codex_settings.approval.label": "Approval",
+  "settings.plugin.ai_chat.codex_settings.approval.description":
+    "Passed to Codex CLI as the approval policy.",
+  "settings.plugin.ai_chat.codex_settings.approval.default": "Codex default",
+  "settings.plugin.ai_chat.codex_settings.approval.untrusted": "Ask on untrusted actions",
+  "settings.plugin.ai_chat.codex_settings.approval.on_request": "Ask when requested",
+  "settings.plugin.ai_chat.codex_settings.approval.never": "Never ask",
+  "settings.plugin.ai_chat.codex_settings.web_search.label": "Web search",
+  "settings.plugin.ai_chat.codex_settings.web_search.description":
+    "Allow Codex CLI to use its search flag for this app.",
+  "settings.plugin.ai_chat.codex_settings.web_search.toggle": "Enable search",
   "settings.plugin.ai_chat.openai.cost_title": "OpenAI API key",
   "settings.plugin.ai_chat.openai.cost_description":
     "OpenAI API usage may incur charges on your OpenAI account. Each run still asks before using this fallback.",
@@ -233,23 +258,23 @@ export const EN_MESSAGES = {
   "settings.plugin.ai_chat.openai.placeholder": "Paste OpenAI API key",
   "settings.plugin.ai_chat.openai.save": "Save key",
   "settings.plugin.ai_chat.openai.clear": "Clear",
-  "settings.plugin.ai_chat.account_banner.title": "Have a Kuku account?",
+  "settings.plugin.ai_chat.account_banner.title": "Have a Momo account?",
   "settings.plugin.ai_chat.account_banner.description":
-    "Log in and choose “Kuku (signed in)” — then chat just works; this screen is only for picking that mode, your key, or saving. Sign-in, session, and AI permissions are all in Account.",
+    "Log in and choose “Momo (signed in)” — then chat just works; this screen is only for picking that mode, your key, or saving. Sign-in, session, and AI permissions are all in Account.",
   "settings.plugin.ai_chat.account_banner.open_account": "Open Account",
   "settings.plugin.ai_chat.connection.label": "Connection",
   "settings.plugin.ai_chat.connection.description":
-    "Start with Kuku if you’re logged in. Switch to your own key only if you need it.",
-  "settings.plugin.ai_chat.connection.option_remote": "Kuku (signed in) — easiest",
+    "Start with Momo if you’re logged in. Switch to your own key only if you need it.",
+  "settings.plugin.ai_chat.connection.option_remote": "Momo (signed in) — easiest",
   "settings.plugin.ai_chat.connection.option_gemini": "My Gemini API key",
   "settings.plugin.ai_chat.model.label": "Model",
   "settings.plugin.ai_chat.model.remote_description":
     "Currently uses Gemini 3.1 Flash Lite. This may change with app updates.",
   "settings.plugin.ai_chat.model.gemini_description":
     "Personal keys currently use Gemini 3.1 Flash Lite too. This may change with app updates.",
-  "settings.plugin.ai_chat.remote_banner.title": "While you’re on Kuku",
+  "settings.plugin.ai_chat.remote_banner.title": "While you’re on Momo",
   "settings.plugin.ai_chat.remote_banner.description":
-    "No API key in this screen — you already authorized the app with your Kuku / Google sign-in. If chat says it’s not allowed, check Account in settings.",
+    "No API key in this screen — you already authorized the app with your Momo / Google sign-in. If chat says it’s not allowed, check Account in settings.",
   "settings.plugin.ai_chat.gemini_banner.title": "Using your own key",
   "settings.plugin.ai_chat.gemini_banner.step1":
     "Open Google AI Studio (link in Quick guide above).",
@@ -423,16 +448,16 @@ export const EN_MESSAGES = {
   "settings.files.location.current": "Same folder as current file",
   "settings.files.deleted.label": "Deleted files",
   "settings.files.deleted.description":
-    "Choose whether deletes go to the system trash, Kuku's hidden .trash folder, or are removed permanently.",
+    "Choose whether deletes go to the system trash, Momo's hidden .trash folder, or are removed permanently.",
   "settings.files.deleted.placeholder": "Select action",
   "settings.files.deleted.trash": "Move to system trash",
   "settings.files.deleted.kuku_trash": "Move to .trash folder",
   "settings.files.deleted.permanent": "Delete permanently",
-  "settings.files.kuku_trash.label": "Kuku trash",
+  "settings.files.kuku_trash.label": "Momo trash",
   "settings.files.kuku_trash.description":
     "The .trash folder stays hidden from the file tree. Use these actions to open it in Finder or remove its contents.",
   "settings.files.kuku_trash.confirm_description":
-    "Are you sure? Empty Trash permanently deletes everything currently inside Kuku Trash.",
+    "Are you sure? Empty Trash permanently deletes everything currently inside Momo Trash.",
   "settings.files.kuku_trash.open": "Open Trash",
   "settings.files.kuku_trash.empty": "Empty Trash",
   "settings.files.kuku_trash.confirm_empty": "Confirm Empty",
@@ -519,7 +544,7 @@ export const EN_MESSAGES = {
   "vault.empty.description.none": "Select your vault folder to start browsing files.",
   "vault.empty.action.working": "Working...",
   "vault.empty.action.select_vault": "Select Vault",
-  "vault.empty.tree": "This vault is empty.",
+  "vault.empty.tree": "This vault is empty. Use + to create your first note.",
 
   "search.placeholder": "Search your vault",
   "search.status.prefix": "Status",
@@ -617,9 +642,12 @@ export const EN_MESSAGES = {
   "chat.input.placeholder.ask": "Ask about your vault…",
   "chat.input.no_matching_files": "No matching markdown files",
   "chat.input.vault_root": "Vault root",
+  "chat.input.add_file": "Add file",
   "chat.input.remove_file": "Remove {{name}}",
   "chat.input.send": "Send",
   "chat.input.stop": "Stop",
+  "chat.input.codex_settings": "Codex settings",
+  "chat.input.codex_settings.mode": "Mode",
   "chat.header.cancel": "Cancel",
   "chat.header.clear": "Clear Chat",
   "chat.header.auto_accept": "Auto-approve",
@@ -633,11 +661,11 @@ export const EN_MESSAGES = {
   "chat.panel.setup.description":
     "Connect Codex CLI or add an OpenAI key before starting agent actions.",
   "chat.panel.setup.opening": "Opening...",
-  "chat.panel.setup.sign_in": "Sign in with Kuku",
-  "chat.panel.setup.remote_hint": "Sign in once for Kuku Remote - no local API key on this device.",
+  "chat.panel.setup.sign_in": "Sign in with Momo",
+  "chat.panel.setup.remote_hint": "Sign in once for Momo Remote - no local API key on this device.",
   "chat.panel.setup.or": "or",
   "chat.panel.setup.open_codex": "Open Codex setup",
-  "chat.panel.setup.codex_hint": "Install Codex CLI and sign in; Kuku only checks readiness.",
+  "chat.panel.setup.codex_hint": "Install Codex CLI and sign in; Momo only checks readiness.",
   "chat.panel.setup.check_again": "Check again",
   "chat.panel.setup.checking": "Checking...",
   "chat.panel.setup.continue_without_agent": "Continue without agent",
@@ -647,7 +675,7 @@ export const EN_MESSAGES = {
   "chat.panel.setup.copy_diagnostic": "Copy diagnostic",
   "chat.panel.permission.title": "Permission required",
   "chat.panel.permission.description":
-    "Allow AI Chat in Account -> Authorizations to use your Kuku session.",
+    "Allow AI Chat in Account -> Authorizations to use your Momo session.",
 
   "chat.welcome.title": "Hello",
   "chat.welcome.subtitle.agent": "Your second brain, ready to think with you",

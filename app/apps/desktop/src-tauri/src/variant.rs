@@ -25,8 +25,8 @@ pub fn init(identifier: String) {
 
 fn variant_suffix() -> &'static str {
     match IDENTIFIER.get().map(String::as_str) {
-        Some("mom.kuku.app.dev") => ".dev",
-        Some("mom.kuku.app.preview") => ".preview",
+        Some("mom.momo.app.dev" | "mom.kuku.app.dev") => ".dev",
+        Some("mom.momo.app.preview" | "mom.kuku.app.preview") => ".preview",
         // Prod bundle, any unrecognized identifier, and the pre-init
         // fallback all collapse to the legacy suffix-less layout.
         _ => "",

@@ -1,9 +1,6 @@
-use tauri::{AppHandle, State, Wry, command};
+use tauri::{State, command};
 
-use crate::{
-    AiConfig, AiState, ChatMode, EditorContext, NewSessionPayload, ProxyToolDescriptor,
-    ProxyToolResult, session,
-};
+use crate::{AiConfig, AiState, ChatMode, NewSessionPayload, ProxyToolDescriptor, ProxyToolResult};
 
 #[command]
 pub async fn ai_new_session(
@@ -14,34 +11,6 @@ pub async fn ai_new_session(
     Ok(NewSessionPayload {
         session_id: session.id.clone(),
     })
-}
-
-#[command]
-pub async fn ai_send_message(
-    app: AppHandle<Wry>,
-    state: State<'_, AiState>,
-    session_id: String,
-    mode: ChatMode,
-    content: String,
-    editor_context: Option<EditorContext>,
-) -> Result<(), String> {
-    let session = state
-        .get_session(&session_id)
-        .map_err(|error| error.to_string())?;
-    let state_clone = state.inner().clone();
-    let app_clone = app.clone();
-    tauri::async_runtime::spawn(async move {
-        session::run_turn(
-            app_clone,
-            state_clone,
-            session,
-            mode,
-            content,
-            editor_context.unwrap_or_default(),
-        )
-        .await;
-    });
-    Ok(())
 }
 
 #[command]

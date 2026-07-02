@@ -9,6 +9,7 @@ import {
   shouldRenderExistingAiChatSurface,
   shouldShowAgentSetupPrompt,
 } from "./agent_provider";
+import { shouldBlockRemotePermission } from "./chat_panel_permissions";
 import { chatState, loadConfig } from "./chat_store";
 import { ChatHeader } from "./components/chat_header";
 import { ChatInput } from "./components/chat_input";
@@ -174,10 +175,13 @@ function ChatPanel(): JSX.Element {
   const needsRemoteLogin = () =>
     chatState.config.provider === "remote" && !chatState.config.loading && !authState.authenticated;
   const needsRemotePermission = () =>
-    chatState.config.provider === "remote" &&
-    !chatState.config.loading &&
-    authState.authenticated &&
-    !getAuthService()?.isPluginAuthorized("ai-chat");
+    shouldBlockRemotePermission({
+      codexReady: agentProviderState.providerStatus === "codex_cli",
+      provider: chatState.config.provider,
+      configLoading: chatState.config.loading,
+      authenticated: authState.authenticated,
+      pluginAuthorized: getAuthService()?.isPluginAuthorized("ai-chat") === true,
+    });
 
   // Reload config when panel mounts so we pick up changes made in Settings.
   onMount(() => {

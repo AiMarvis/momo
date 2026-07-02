@@ -1,6 +1,6 @@
 // ── Default Theme Plugin ──
 //
-// Provides the built-in Kuku dark and light themes.
+// Provides the built-in Momo dark and light themes.
 // Color values are extracted from the base CSS tokens in index.css
 // so this plugin can re-apply them at runtime via the theme registry.
 //
@@ -15,17 +15,17 @@ const themeDefaultPlugin: KukuPlugin = {
   id: "theme-default",
   name: "Default Theme",
   version: "0.1.0",
-  description: "Built-in Kuku dark and light themes",
+  description: "Built-in Momo dark and light themes",
 
   themes: [
     {
       id: "kuku-default",
-      name: "Kuku Default",
-      author: "Kuku",
+      name: "Momo Default",
+      author: "Momo",
       variants: [
         // ── Dark ──
         {
-          name: "Kuku Dark",
+          name: "Momo Dark",
           appearance: "dark",
           colors: {
             bgPrimary: "#1a1a1a",
@@ -79,7 +79,7 @@ const themeDefaultPlugin: KukuPlugin = {
 
         // ── Light ──
         {
-          name: "Kuku Light",
+          name: "Momo Light",
           appearance: "light",
           colors: {
             bgPrimary: "#ffffff",

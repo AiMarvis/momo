@@ -348,7 +348,7 @@ function SettingsDebugView(): JSX.Element {
         <div class="space-y-2">
           <SettingsListRow
             title="ai-chat"
-            description="Allow this plugin to use your Kuku server session."
+            description="Allow this plugin to use your Momo server session."
             meta={<SettingsStatusBadge tone="success">Allowed</SettingsStatusBadge>}
             action={<Switch checked onChange={() => {}} />}
           />

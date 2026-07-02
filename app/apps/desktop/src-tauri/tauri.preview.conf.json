@@ -1,11 +1,11 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "KukuPreview",
-  "identifier": "mom.kuku.app.preview",
+  "productName": "MomoPreview",
+  "identifier": "mom.momo.app.preview",
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": ["kuku-preview", "com.kuku.app.preview"]
+        "schemes": ["momo-preview", "com.momo.app.preview", "kuku-preview", "com.kuku.app.preview"]
       }
     },
     "updater": {

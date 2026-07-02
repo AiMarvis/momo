@@ -3,7 +3,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { createStore } from "solid-js/store";
 
 type CodexReadinessStatus = "ready" | "codex_cli_not_found" | "login_required" | "check_timed_out";
-type AgentProviderStatus = "codex_cli" | "openai_api" | "setup_required";
+type AgentProviderStatus = "codex_cli" | "setup_required";
 
 interface CodexReadiness {
   readonly provider: "codex_cli";
@@ -92,10 +92,9 @@ function withUserFacingStatus(readiness: CodexReadiness): CodexReadinessView {
 
 function resolveProviderStatus(
   codex: CodexReadinessView,
-  openai: OpenAiApiKeyStatus,
+  _openai: OpenAiApiKeyStatus,
 ): AgentProviderStatus {
   if (codex.ready) return "codex_cli";
-  if (openai.configured) return "openai_api";
   return "setup_required";
 }
 
@@ -140,7 +139,8 @@ function continueWithoutAgent(): void {
 }
 
 function shouldRenderExistingAiChatSurface(gate: ExistingAiChatGate): boolean {
-  return !gate.apiKeyMissing && !gate.remoteLoginRequired;
+  void gate;
+  return agentProviderState.providerStatus === "codex_cli";
 }
 
 function shouldShowAgentSetupPrompt(state: AgentProviderState = agentProviderState): boolean {
@@ -161,7 +161,7 @@ function buildCodexDiagnostic(readiness: CodexReadiness): string {
   const timestamp = new Date(readiness.checkedAtMs || Date.now()).toISOString();
   const macosVersion = navigator.platform || "macOS";
   return [
-    "Kuku Codex readiness diagnostic",
+    "Momo Codex readiness diagnostic",
     `app_version=${import.meta.env.VITE_APP_VERSION ?? "0.0.0"}`,
     `macos_version=${macosVersion}`,
     `provider_status=${readiness.provider}`,

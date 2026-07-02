@@ -383,7 +383,7 @@ pub(crate) fn emit_status(app: &AppHandle, status: &SyncRuntimeStatus) {
 fn recovery_phrase_export_text(phrase: &str) -> String {
     let saved_at = Local::now().to_rfc3339_opts(SecondsFormat::Secs, false);
     [
-        "# Kuku Sync Recovery Phrase",
+        "# Momo Sync Recovery Phrase",
         "",
         &format!("Saved at: {saved_at}"),
         "",

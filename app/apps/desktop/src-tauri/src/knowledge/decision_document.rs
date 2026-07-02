@@ -272,7 +272,7 @@ pub fn canonicalize_kuku_blocks(
             .map(|block| {
                 let Some(span) = block.span() else {
                     return Err(DecisionDocumentError::validation(
-                        "Kuku block is missing byte span data",
+                        "Momo block is missing byte span data",
                     ));
                 };
                 Ok((span.full.clone(), block.canonical_markdown()?))
@@ -292,7 +292,7 @@ pub fn render_decision_document(
     for block in &document.blocks {
         let Some(span) = block.span() else {
             return Err(DecisionDocumentError::validation(
-                "Kuku block is missing byte span data",
+                "Momo block is missing byte span data",
             ));
         };
         replacements.push((span.full.clone(), block.canonical_markdown()?));
@@ -312,7 +312,7 @@ fn render_with_replacements(
     for (range, replacement) in replacements {
         if range.start < cursor || range.end > markdown.len() {
             return Err(DecisionDocumentError::validation(
-                "Kuku block byte span is invalid",
+                "Momo block byte span is invalid",
             ));
         }
         output.push_str(&markdown[cursor..range.start]);
@@ -670,12 +670,12 @@ fn parse_kuku_blocks(markdown: &str) -> Result<Vec<ParsedKukuBlock>, DecisionDoc
 
         let closing = find_closing_fence(markdown, line.end, opening.marker, opening.len)
             .ok_or_else(|| {
-                DecisionDocumentError::validation("Kuku fenced block is missing closing fence")
+                DecisionDocumentError::validation("Momo fenced block is missing closing fence")
             })?;
         let payload_range = ByteRange::new(line.end, closing.start);
         if payload_range.end - payload_range.start > MAX_KUKU_PAYLOAD_BYTES {
             return Err(DecisionDocumentError::validation(
-                "Kuku fenced block payload exceeds maximum size",
+                "Momo fenced block payload exceeds maximum size",
             ));
         }
 
@@ -712,7 +712,7 @@ fn parse_kuku_blocks(markdown: &str) -> Result<Vec<ParsedKukuBlock>, DecisionDoc
 
         if blocks.len() > MAX_KUKU_BLOCKS {
             return Err(DecisionDocumentError::validation(
-                "Decision document has too many Kuku fenced blocks",
+                "Decision document has too many Momo fenced blocks",
             ));
         }
         if blocks

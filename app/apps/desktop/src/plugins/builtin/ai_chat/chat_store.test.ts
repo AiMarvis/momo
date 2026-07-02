@@ -44,6 +44,23 @@ function defaultEditorContext() {
   };
 }
 
+function codexReadyResponse() {
+  return {
+    provider: "codex_cli",
+    status: "ready",
+    ready: true,
+    checkName: "codex login status",
+    exitCode: 0,
+    timedOut: false,
+    checkedAtMs: 1,
+  };
+}
+
+async function refreshCodexReadyProvider(): Promise<void> {
+  const agent = await import("./agent_provider");
+  await agent.refreshAgentProviderStatus();
+}
+
 describe("ai_chat chat_store config", () => {
   beforeEach(() => {
     mockInvoke.mockReset();
@@ -61,6 +78,11 @@ describe("ai_chat chat_store config", () => {
             apiKey: null,
             model: "gemini-3.1-flash-lite-preview",
             serverUrl: "https://www.kuku.mom",
+            defaultMode: "agent",
+            codexModel: "gpt-5-codex",
+            codexSandbox: "workspace-write",
+            codexApprovalPolicy: "on-request",
+            codexWebSearch: true,
             roundLimit: 16,
             proxyToolTimeoutMs: 30_000,
           };
@@ -90,6 +112,11 @@ describe("ai_chat chat_store config", () => {
         apiKey: null,
         model: "gemini-3.1-flash-lite",
         serverUrl: "http://localhost:8080",
+        defaultMode: "agent",
+        codexModel: "gpt-5-codex",
+        codexSandbox: "workspace-write",
+        codexApprovalPolicy: "default",
+        codexWebSearch: false,
         roundLimit: 16,
         proxyToolTimeoutMs: 30_000,
       },
@@ -101,6 +128,11 @@ describe("ai_chat chat_store config", () => {
         apiKey: null,
         model: "gemini-3.1-flash-lite",
         serverUrl: "http://localhost:8080",
+        defaultMode: "agent",
+        codexModel: "gpt-5-codex",
+        codexSandbox: "workspace-write",
+        codexApprovalPolicy: "default",
+        codexWebSearch: false,
         roundLimit: 16,
         proxyToolTimeoutMs: 30_000,
       },
@@ -108,6 +140,11 @@ describe("ai_chat chat_store config", () => {
     expect(chat.chatState.config.provider).toBe("remote");
     expect(chat.chatState.config.model).toBe("gemini-3.1-flash-lite");
     expect(chat.chatState.config.serverUrl).toBe("http://localhost:8080");
+    expect(chat.chatState.selectedMode).toBe("agent");
+    expect(chat.chatState.config.codexModel).toBe("gpt-5-codex");
+    expect(chat.chatState.config.codexSandbox).toBe("workspace-write");
+    expect(chat.chatState.config.codexApprovalPolicy).toBe("default");
+    expect(chat.chatState.config.codexWebSearch).toBe(false);
   });
 
   it("pins saved plugin settings to the build default model before syncing runtime config", async () => {
@@ -123,8 +160,16 @@ describe("ai_chat chat_store config", () => {
 
     const chat = await loadChatStoreModule();
 
-    await chat.saveConfig("remote", "", "https://saved");
+    const saved = await chat.saveConfig({
+      provider: "remote",
+      apiKey: "",
+      serverUrl: "https://saved",
+      defaultMode: "inline",
+      codexModel: "gpt-5",
+      codexSandbox: "danger-full-access",
+    });
 
+    expect(saved).toBe(true);
     expect(mockInvoke).toHaveBeenNthCalledWith(1, "plugin_save_settings_with_secrets", {
       pluginId: "ai-chat",
       settings: {
@@ -132,6 +177,11 @@ describe("ai_chat chat_store config", () => {
         apiKey: null,
         model: "gemini-3.1-flash-lite",
         serverUrl: "https://saved",
+        defaultMode: "inline",
+        codexModel: "gpt-5",
+        codexSandbox: "danger-full-access",
+        codexApprovalPolicy: "default",
+        codexWebSearch: false,
         roundLimit: 12,
         proxyToolTimeoutMs: 15_000,
       },
@@ -143,10 +193,43 @@ describe("ai_chat chat_store config", () => {
         apiKey: null,
         model: "gemini-3.1-flash-lite",
         serverUrl: "https://saved",
+        defaultMode: "inline",
+        codexModel: "gpt-5",
+        codexSandbox: "danger-full-access",
+        codexApprovalPolicy: "default",
+        codexWebSearch: false,
         roundLimit: 12,
         proxyToolTimeoutMs: 15_000,
       },
     });
+    expect(chat.chatState.selectedMode).toBe("inline");
+  });
+
+  it("returns false when saving settings fails", async () => {
+    mockInvoke.mockImplementation(async (command: string) => {
+      switch (command) {
+        case "plugin_save_settings_with_secrets":
+          throw new Error("settings save failed");
+        default:
+          throw new Error(`unexpected invoke: ${command}`);
+      }
+    });
+
+    const chat = await loadChatStoreModule();
+
+    const saved = await chat.saveConfig({
+      provider: "remote",
+      apiKey: "",
+      serverUrl: "https://saved",
+      defaultMode: "ask",
+      codexModel: "",
+      codexSandbox: "read-only",
+    });
+
+    expect(saved).toBe(false);
+    expect(chat.chatState.config.error).toBe("settings save failed");
+    expect(chat.chatState.config.saving).toBe(false);
+    expect(mockInvoke).not.toHaveBeenCalledWith("plugin:kuku-ai|ai_set_config", expect.anything());
   });
 
   it("clears persisted secure settings through secure-aware command", async () => {
@@ -222,16 +305,21 @@ describe("ai_chat chat_store session modes", () => {
   it("keeps the current session when sending after a mode switch", async () => {
     mockInvoke.mockImplementation(async (command: string) => {
       switch (command) {
+        case "agent_check_codex_readiness":
+          return codexReadyResponse();
+        case "agent_get_openai_api_key_status":
+          return { configured: false };
         case "plugin:kuku-ai|ai_new_session":
           return { sessionId: "session-1" };
-        case "plugin:kuku-ai|ai_send_message":
-          return undefined;
+        case "agent_run_codex_chat":
+          return { content: "Edited." };
         default:
           throw new Error(`unexpected invoke: ${command}`);
       }
     });
 
     const chat = await loadChatStoreModule();
+    await refreshCodexReadyProvider();
 
     await chat.createSession("ask");
     await chat.switchMode("agent");
@@ -244,29 +332,228 @@ describe("ai_chat chat_store session modes", () => {
         role: "user",
         content: "edit this note",
       },
+      {
+        kind: "text",
+        role: "assistant",
+        content: "Edited.",
+      },
     ]);
-    expect(mockInvoke).toHaveBeenCalledTimes(2);
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, "plugin:kuku-ai|ai_send_message", {
-      sessionId: "session-1",
-      mode: "agent",
-      content: "edit this note",
-      editorContext: {
-        activeFile: null,
-        selectedText: null,
-        openTabs: [],
-        cursorLine: null,
-        embeddedFiles: [],
+    expect(mockInvoke).toHaveBeenCalledWith("agent_run_codex_chat", {
+      request: {
+        content: "edit this note",
+        mode: "agent",
+        codexConfig: {
+          sandbox: "read-only",
+        },
+        editorContext: {
+          activeFile: null,
+          selectedText: null,
+          openTabs: [],
+          cursorLine: null,
+          embeddedFiles: [],
+        },
       },
     });
+    expect(mockInvoke).not.toHaveBeenCalledWith("plugin:kuku-ai|ai_send_message", expect.anything());
+  });
+
+  it("sends through Codex CLI when Codex is the ready provider", async () => {
+    mockInvoke.mockImplementation(async (command: string) => {
+      switch (command) {
+        case "agent_check_codex_readiness":
+          return {
+            provider: "codex_cli",
+            status: "ready",
+            ready: true,
+            checkName: "codex login status",
+            exitCode: 0,
+            timedOut: false,
+            checkedAtMs: 1,
+          };
+        case "agent_get_openai_api_key_status":
+          return { configured: false };
+        case "plugin:kuku-ai|ai_new_session":
+          return { sessionId: "session-1" };
+        case "agent_run_codex_chat":
+          return { content: "MOMO_CODEX_CLI_OK" };
+        default:
+          throw new Error(`unexpected invoke: ${command}`);
+      }
+    });
+
+    const chat = await loadChatStoreModule();
+    const agent = await import("./agent_provider");
+    await agent.refreshAgentProviderStatus();
+
+    await chat.createSession("ask");
+    await chat.sendMessage("say ok");
+
+    expect(mockInvoke).toHaveBeenCalledWith("agent_run_codex_chat", {
+      request: {
+        content: "say ok",
+        mode: "ask",
+        codexConfig: {
+          sandbox: "read-only",
+        },
+        editorContext: {
+          activeFile: null,
+          selectedText: null,
+          openTabs: [],
+          cursorLine: null,
+          embeddedFiles: [],
+        },
+      },
+    });
+    expect(mockInvoke).not.toHaveBeenCalledWith(
+      "plugin:kuku-ai|ai_send_message",
+      expect.anything(),
+    );
+    expect(chat.chatState.sessions["session-1"]?.messages).toMatchObject([
+      { kind: "text", role: "user", content: "say ok" },
+      { kind: "text", role: "assistant", content: "MOMO_CODEX_CLI_OK" },
+    ]);
+    expect(chat.chatState.sessions["session-1"]?.status).toBe("idle");
+  });
+
+  it("sends saved Codex CLI settings with chat requests", async () => {
+    mockInvoke.mockImplementation(async (command: string) => {
+      switch (command) {
+        case "plugin_get_settings_with_secrets":
+          return {
+            provider: "remote",
+            apiKey: null,
+            model: "gemini-3.1-flash-lite",
+            serverUrl: "http://localhost:8080",
+            defaultMode: "agent",
+            codexModel: "gpt-5-codex",
+            codexSandbox: "workspace-write",
+            codexApprovalPolicy: "on-request",
+            codexWebSearch: true,
+            roundLimit: 12,
+            proxyToolTimeoutMs: 15_000,
+          };
+        case "plugin_save_settings_with_secrets":
+        case "plugin:kuku-ai|ai_set_config":
+          return undefined;
+        case "agent_check_codex_readiness":
+          return codexReadyResponse();
+        case "agent_get_openai_api_key_status":
+          return { configured: false };
+        case "plugin:kuku-ai|ai_new_session":
+          return { sessionId: "session-1" };
+        case "agent_run_codex_chat":
+          return { content: "Configured." };
+        default:
+          throw new Error(`unexpected invoke: ${command}`);
+      }
+    });
+
+    const chat = await loadChatStoreModule();
+    await chat.loadConfig();
+    await refreshCodexReadyProvider();
+
+    await chat.createSession();
+    await chat.sendMessage("use saved settings");
+
+    expect(chat.chatState.selectedMode).toBe("agent");
+    expect(mockInvoke).toHaveBeenCalledWith("agent_run_codex_chat", {
+      request: {
+        content: "use saved settings",
+        mode: "agent",
+        codexConfig: {
+          model: "gpt-5-codex",
+          sandbox: "workspace-write",
+        },
+        editorContext: {
+          activeFile: null,
+          selectedText: null,
+          openTabs: [],
+          cursorLine: null,
+          embeddedFiles: [],
+        },
+      },
+    });
+  });
+
+  it("shows a short error and skips legacy send when Codex is not ready", async () => {
+    mockInvoke.mockImplementation(async (command: string) => {
+      switch (command) {
+        case "plugin:kuku-ai|ai_new_session":
+          return { sessionId: "session-1" };
+        default:
+          throw new Error(`unexpected invoke: ${command}`);
+      }
+    });
+
+    const chat = await loadChatStoreModule();
+
+    await chat.sendMessage("hello");
+
+    expect(chat.chatState.sessions["session-1"]?.status).toBe("error");
+    expect(chat.chatState.sessions["session-1"]?.error).toBe("Codex CLI is not ready");
+    expect(chat.chatState.sessions["session-1"]?.messages).toMatchObject([
+      { kind: "text", role: "user", content: "hello" },
+      { kind: "text", role: "system", content: "Codex CLI is not ready" },
+    ]);
+    expect(mockInvoke).not.toHaveBeenCalledWith("agent_run_codex_chat", expect.anything());
+    expect(mockInvoke).not.toHaveBeenCalledWith("plugin:kuku-ai|ai_send_message", expect.anything());
+  });
+
+  it("allows the next Codex message after a failed turn", async () => {
+    let codexChatCalls = 0;
+    mockInvoke.mockImplementation(async (command: string) => {
+      switch (command) {
+        case "agent_check_codex_readiness":
+          return codexReadyResponse();
+        case "agent_get_openai_api_key_status":
+          return { configured: false };
+        case "plugin:kuku-ai|ai_new_session":
+          return { sessionId: "session-1" };
+        case "agent_run_codex_chat":
+          codexChatCalls += 1;
+          if (codexChatCalls === 1) {
+            throw new Error("Codex chat command failed with exit code 1");
+          }
+          return { content: "Recovered." };
+        default:
+          throw new Error(`unexpected invoke: ${command}`);
+      }
+    });
+
+    const chat = await loadChatStoreModule();
+    await refreshCodexReadyProvider();
+
+    await chat.createSession("ask");
+    expect(await chat.sendMessage("first turn")).toBe(true);
+    expect(chat.chatState.sessions["session-1"]?.status).toBe("error");
+
+    expect(await chat.sendMessage("second turn")).toBe(true);
+
+    expect(codexChatCalls).toBe(2);
+    expect(chat.chatState.sessions["session-1"]?.status).toBe("idle");
+    expect(chat.chatState.sessions["session-1"]?.messages).toMatchObject([
+      { kind: "text", role: "user", content: "first turn" },
+      {
+        kind: "text",
+        role: "system",
+        content: "Codex chat command failed with exit code 1",
+      },
+      { kind: "text", role: "user", content: "second turn" },
+      { kind: "text", role: "assistant", content: "Recovered." },
+    ]);
   });
 
   it("sends attached files as embedded editor context", async () => {
     mockInvoke.mockImplementation(async (command: string) => {
       switch (command) {
+        case "agent_check_codex_readiness":
+          return codexReadyResponse();
+        case "agent_get_openai_api_key_status":
+          return { configured: false };
         case "plugin:kuku-ai|ai_new_session":
           return { sessionId: "session-1" };
-        case "plugin:kuku-ai|ai_send_message":
-          return undefined;
+        case "agent_run_codex_chat":
+          return { content: "Summary." };
         default:
           throw new Error(`unexpected invoke: ${command}`);
       }
@@ -277,6 +564,7 @@ describe("ai_chat chat_store session modes", () => {
     });
 
     const chat = await loadChatStoreModule();
+    await refreshCodexReadyProvider();
 
     await chat.createSession("agent");
     await chat.addFileAttachment({
@@ -302,35 +590,49 @@ describe("ai_chat chat_store session modes", () => {
           },
         ],
       },
+      {
+        kind: "text",
+        role: "assistant",
+        content: "Summary.",
+      },
     ]);
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, "plugin:kuku-ai|ai_send_message", {
-      sessionId: "session-1",
-      mode: "agent",
-      content: "summarize this",
-      editorContext: {
-        activeFile: null,
-        selectedText: null,
-        openTabs: [],
-        cursorLine: null,
-        embeddedFiles: [
-          {
-            path: "notes/Base.md",
-            content: "# Base\ncontent",
-            checksum: "checksum-1",
-            sizeBytes: 14,
-          },
-        ],
+    expect(mockInvoke).toHaveBeenCalledWith("agent_run_codex_chat", {
+      request: {
+        content: "summarize this",
+        mode: "agent",
+        codexConfig: {
+          sandbox: "read-only",
+        },
+        editorContext: {
+          activeFile: null,
+          selectedText: null,
+          openTabs: [],
+          cursorLine: null,
+          embeddedFiles: [
+            {
+              path: "notes/Base.md",
+              content: "# Base\ncontent",
+              checksum: "checksum-1",
+              sizeBytes: 14,
+            },
+          ],
+        },
       },
     });
+    expect(mockInvoke).not.toHaveBeenCalledWith("plugin:kuku-ai|ai_send_message", expect.anything());
   });
 
   it("sends selected text as visible turn context by default", async () => {
     mockInvoke.mockImplementation(async (command: string) => {
       switch (command) {
+        case "agent_check_codex_readiness":
+          return codexReadyResponse();
+        case "agent_get_openai_api_key_status":
+          return { configured: false };
         case "plugin:kuku-ai|ai_new_session":
           return { sessionId: "session-1" };
-        case "plugin:kuku-ai|ai_send_message":
-          return undefined;
+        case "agent_run_codex_chat":
+          return { content: "Explained." };
         default:
           throw new Error(`unexpected invoke: ${command}`);
       }
@@ -343,6 +645,7 @@ describe("ai_chat chat_store session modes", () => {
     }));
 
     const chat = await loadChatStoreModule();
+    await refreshCodexReadyProvider();
 
     await chat.createSession("ask");
     await chat.sendMessage("explain this");
@@ -360,28 +663,42 @@ describe("ai_chat chat_store session modes", () => {
           },
         ],
       },
+      {
+        kind: "text",
+        role: "assistant",
+        content: "Explained.",
+      },
     ]);
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, "plugin:kuku-ai|ai_send_message", {
-      sessionId: "session-1",
-      mode: "ask",
-      content: "explain this",
-      editorContext: {
-        activeFile: "notes/Base.md",
-        selectedText: "selected paragraph",
-        openTabs: [],
-        cursorLine: null,
-        embeddedFiles: [],
+    expect(mockInvoke).toHaveBeenCalledWith("agent_run_codex_chat", {
+      request: {
+        content: "explain this",
+        mode: "ask",
+        codexConfig: {
+          sandbox: "read-only",
+        },
+        editorContext: {
+          activeFile: "notes/Base.md",
+          selectedText: "selected paragraph",
+          openTabs: [],
+          cursorLine: null,
+          embeddedFiles: [],
+        },
       },
     });
+    expect(mockInvoke).not.toHaveBeenCalledWith("plugin:kuku-ai|ai_send_message", expect.anything());
   });
 
   it("can disable selected text context for precomposed prompts", async () => {
     mockInvoke.mockImplementation(async (command: string) => {
       switch (command) {
+        case "agent_check_codex_readiness":
+          return codexReadyResponse();
+        case "agent_get_openai_api_key_status":
+          return { configured: false };
         case "plugin:kuku-ai|ai_new_session":
           return { sessionId: "session-1" };
-        case "plugin:kuku-ai|ai_send_message":
-          return undefined;
+        case "agent_run_codex_chat":
+          return { content: "Done." };
         default:
           throw new Error(`unexpected invoke: ${command}`);
       }
@@ -394,6 +711,7 @@ describe("ai_chat chat_store session modes", () => {
     }));
 
     const chat = await loadChatStoreModule();
+    await refreshCodexReadyProvider();
 
     await chat.createSession("ask");
     await chat.sendMessage("prompt already contains selection", { includeSelectedText: false });
@@ -404,20 +722,30 @@ describe("ai_chat chat_store session modes", () => {
         role: "user",
         content: "prompt already contains selection",
       },
+      {
+        kind: "text",
+        role: "assistant",
+        content: "Done.",
+      },
     ]);
     expect(chat.chatState.sessions["session-1"]?.messages[0]).not.toHaveProperty("attachments");
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, "plugin:kuku-ai|ai_send_message", {
-      sessionId: "session-1",
-      mode: "ask",
-      content: "prompt already contains selection",
-      editorContext: {
-        activeFile: "notes/Base.md",
-        selectedText: null,
-        openTabs: [],
-        cursorLine: null,
-        embeddedFiles: [],
+    expect(mockInvoke).toHaveBeenCalledWith("agent_run_codex_chat", {
+      request: {
+        content: "prompt already contains selection",
+        mode: "ask",
+        codexConfig: {
+          sandbox: "read-only",
+        },
+        editorContext: {
+          activeFile: "notes/Base.md",
+          selectedText: null,
+          openTabs: [],
+          cursorLine: null,
+          embeddedFiles: [],
+        },
       },
     });
+    expect(mockInvoke).not.toHaveBeenCalledWith("plugin:kuku-ai|ai_send_message", expect.anything());
   });
 
   it("lets the next selected mode change while the active session is busy", async () => {

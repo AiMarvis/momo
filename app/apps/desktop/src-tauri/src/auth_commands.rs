@@ -261,7 +261,7 @@ fn handle_dev_callback_request(app: &AppHandle, stream: &mut TcpStream) -> Resul
             write_http_response(
                 stream,
                 "200 OK",
-                "Authentication complete. You can return to Kuku.",
+                "Authentication complete. You can return to Momo.",
             )
         }
         Ok(Err(error)) => {

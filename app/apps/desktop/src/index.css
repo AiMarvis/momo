@@ -8,7 +8,7 @@
 @import "./styles/resize_grip.css";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Kuku Theme Tokens
+   Momo Theme Tokens
    ───────────────────────────────────────────────────────────────────────────
    Semantic layers based on Zed's token classification:
      1. Surface    — background hierarchy (primary → elevated)
@@ -65,7 +65,7 @@
   --color-border-selected: #8a8a8a;
   /* Table grid: same as ProseMirror `hr` (---) for a consistent rule weight */
   --editor-table-border: var(--color-border);
-  /* KukuLogoSmall body + mouth (not `currentColor`: bg-secondary matches the dark canvas) */
+  /* MomoLogoSmall body + mouth (not `currentColor`: bg-secondary matches the dark canvas) */
   --color-kuku-mark-stroke: #ffffff;
 
   /* ── 7. Status ── */

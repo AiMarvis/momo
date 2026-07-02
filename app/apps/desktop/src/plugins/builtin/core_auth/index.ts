@@ -12,7 +12,7 @@ const coreAuthPlugin: KukuPlugin = {
   id: "core-auth",
   name: "Auth",
   version: "0.1.0",
-  description: "Kuku account session and plugin authorization service",
+  description: "Momo account session and plugin authorization service",
   canDisable: false,
 
   views: [

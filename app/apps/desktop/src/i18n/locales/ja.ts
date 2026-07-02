@@ -17,7 +17,7 @@ export const JA_MESSAGES = {
   "settings.plugin.voxel_graph": "Agent World",
   "settings.plugin.account.title": "アカウント",
   "settings.plugin.account.description":
-    "どのプラグインが Kuku サーバーセッションを利用できるかを管理します。",
+    "どのプラグインが Momo サーバーセッションを利用できるかを管理します。",
   "settings.plugin.account.action.opening": "開いています...",
   "settings.plugin.account.action.sign_in": "ログイン",
   "settings.plugin.account.action.sign_out": "ログアウト",
@@ -33,7 +33,7 @@ export const JA_MESSAGES = {
   "settings.plugin.account.authorizations.empty":
     "サーバーセッションアクセスを要求したプラグインはまだありません。",
   "settings.plugin.account.authorizations.item_description":
-    "このプラグインに Kuku サーバーセッションの利用を許可します。",
+    "このプラグインに Momo サーバーセッションの利用を許可します。",
   "settings.plugin.indexer.title": "インデクサ",
   "settings.plugin.indexer.description":
     "検索と wikilink グラフのインデックス、更新ポリシーを管理します。",
@@ -209,7 +209,7 @@ export const JA_MESSAGES = {
   "settings.plugin.ai_chat.guide.title": "クイックガイド",
   "settings.plugin.ai_chat.guide.connection_label": "接続:",
   "settings.plugin.ai_chat.guide.connection_before_link":
-    "「Kuku」は現在ログイン中のアカウントを使います。Kukuアカウントを使っているならこれが最も簡単です。1回ログインすれば通常このページを調整する必要はありません。「My Gemini API key」は Google",
+    "「Momo」は現在ログイン中のアカウントを使います。Momoアカウントを使っているならこれが最も簡単です。1回ログインすれば通常このページを調整する必要はありません。「My Gemini API key」は Google",
   "settings.plugin.ai_chat.guide.connection_after_link":
     "で発行した個人キー向けです（無料枠でも試せます）。",
   "settings.plugin.ai_chat.guide.save_label": "保存",
@@ -229,6 +229,31 @@ export const JA_MESSAGES = {
   "settings.plugin.ai_chat.agent_provider.check_again": "再チェック",
   "settings.plugin.ai_chat.agent_provider.checking": "確認中...",
   "settings.plugin.ai_chat.agent_provider.copy_diagnostic": "診断をコピー",
+  "settings.plugin.ai_chat.codex_settings.default_mode.label": "既定モード",
+  "settings.plugin.ai_chat.codex_settings.default_mode.description":
+    "AI チャットを開いたときに選択されるモードです。",
+  "settings.plugin.ai_chat.codex_settings.model.label": "OpenAI モデル",
+  "settings.plugin.ai_chat.codex_settings.model.description":
+    "Codex CLI の --model として渡します。空欄の場合は Codex の既定値を使います。",
+  "settings.plugin.ai_chat.codex_settings.model.placeholder": "Codex 既定値",
+  "settings.plugin.ai_chat.codex_settings.model.custom": "カスタム",
+  "settings.plugin.ai_chat.codex_settings.sandbox.label": "ファイルアクセス",
+  "settings.plugin.ai_chat.codex_settings.sandbox.description":
+    "Codex CLI の sandbox モードとして渡します。",
+  "settings.plugin.ai_chat.codex_settings.sandbox.read_only": "読み取り専用",
+  "settings.plugin.ai_chat.codex_settings.sandbox.workspace_write": "ワークスペース書き込み",
+  "settings.plugin.ai_chat.codex_settings.sandbox.danger_full_access": "フルアクセス",
+  "settings.plugin.ai_chat.codex_settings.approval.label": "承認",
+  "settings.plugin.ai_chat.codex_settings.approval.description":
+    "Codex CLI の承認ポリシーとして渡します。",
+  "settings.plugin.ai_chat.codex_settings.approval.default": "Codex 既定値",
+  "settings.plugin.ai_chat.codex_settings.approval.untrusted": "未信頼操作で確認",
+  "settings.plugin.ai_chat.codex_settings.approval.on_request": "要求時に確認",
+  "settings.plugin.ai_chat.codex_settings.approval.never": "確認しない",
+  "settings.plugin.ai_chat.codex_settings.web_search.label": "Web 検索",
+  "settings.plugin.ai_chat.codex_settings.web_search.description":
+    "このアプリで Codex CLI の検索フラグを使えるようにします。",
+  "settings.plugin.ai_chat.codex_settings.web_search.toggle": "検索を有効化",
   "settings.plugin.ai_chat.openai.cost_title": "OpenAI API キー",
   "settings.plugin.ai_chat.openai.cost_description":
     "OpenAI API の使用量は OpenAI アカウントに課金される場合があります。このフォールバックは実行ごとに明示的に確認します。",
@@ -238,23 +263,23 @@ export const JA_MESSAGES = {
   "settings.plugin.ai_chat.openai.placeholder": "OpenAI API キーを貼り付け",
   "settings.plugin.ai_chat.openai.save": "キーを保存",
   "settings.plugin.ai_chat.openai.clear": "削除",
-  "settings.plugin.ai_chat.account_banner.title": "Kuku アカウントがありますか？",
+  "settings.plugin.ai_chat.account_banner.title": "Momo アカウントがありますか？",
   "settings.plugin.ai_chat.account_banner.description":
-    "ログインして「Kuku (signed in)」を選ぶとすぐ使えます。この画面は接続方式・キー選択・保存のみです。ログイン、セッション、AI 権限はアカウントで管理します。",
+    "ログインして「Momo (signed in)」を選ぶとすぐ使えます。この画面は接続方式・キー選択・保存のみです。ログイン、セッション、AI 権限はアカウントで管理します。",
   "settings.plugin.ai_chat.account_banner.open_account": "アカウントを開く",
   "settings.plugin.ai_chat.connection.label": "接続",
   "settings.plugin.ai_chat.connection.description":
-    "ログイン済みなら Kuku から始めるのがおすすめです。必要な場合のみ個人キーに切り替えてください。",
-  "settings.plugin.ai_chat.connection.option_remote": "Kuku (signed in) - かんたん",
+    "ログイン済みなら Momo から始めるのがおすすめです。必要な場合のみ個人キーに切り替えてください。",
+  "settings.plugin.ai_chat.connection.option_remote": "Momo (signed in) - かんたん",
   "settings.plugin.ai_chat.connection.option_gemini": "My Gemini API key",
   "settings.plugin.ai_chat.model.label": "モデル",
   "settings.plugin.ai_chat.model.remote_description":
     "現在は Gemini 3.1 Flash Lite を使用しています。アプリの更新により変わることがあります。",
   "settings.plugin.ai_chat.model.gemini_description":
     "個人キー利用時も現在は Gemini 3.1 Flash Lite を使用しています。アプリの更新により変わることがあります。",
-  "settings.plugin.ai_chat.remote_banner.title": "Kuku モード利用中",
+  "settings.plugin.ai_chat.remote_banner.title": "Momo モード利用中",
   "settings.plugin.ai_chat.remote_banner.description":
-    "この画面に API キーは不要です。Kuku / Google ログインで認証済みです。チャット許可エラーが出る場合は設定のアカウントを確認してください。",
+    "この画面に API キーは不要です。Momo / Google ログインで認証済みです。チャット許可エラーが出る場合は設定のアカウントを確認してください。",
   "settings.plugin.ai_chat.gemini_banner.title": "自分のキーを使う",
   "settings.plugin.ai_chat.gemini_banner.step1":
     "Google AI Studio を開きます（上のクイックガイド参照）。",
@@ -427,16 +452,16 @@ export const JA_MESSAGES = {
   "settings.files.location.current": "現在のファイルと同じフォルダー",
   "settings.files.deleted.label": "削除されたファイル",
   "settings.files.deleted.description":
-    "削除時の動作を、システムごみ箱、Kukuの隠し .trash フォルダー、完全削除から選びます。",
+    "削除時の動作を、システムごみ箱、Momoの隠し .trash フォルダー、完全削除から選びます。",
   "settings.files.deleted.placeholder": "動作を選択",
   "settings.files.deleted.trash": "システムごみ箱に移動",
   "settings.files.deleted.kuku_trash": ".trash フォルダーに移動",
   "settings.files.deleted.permanent": "完全に削除",
-  "settings.files.kuku_trash.label": "Kukuごみ箱",
+  "settings.files.kuku_trash.label": "Momoごみ箱",
   "settings.files.kuku_trash.description":
     ".trash フォルダーはファイルツリーに表示されません。Finderで開くか内容を削除できます。",
   "settings.files.kuku_trash.confirm_description":
-    "本当に実行しますか？ ごみ箱を空にすると、Kukuごみ箱内の項目はすべて完全削除されます。",
+    "本当に実行しますか？ ごみ箱を空にすると、Momoごみ箱内の項目はすべて完全削除されます。",
   "settings.files.kuku_trash.open": "ごみ箱を開く",
   "settings.files.kuku_trash.empty": "ごみ箱を空にする",
   "settings.files.kuku_trash.confirm_empty": "空にする",
@@ -523,7 +548,7 @@ export const JA_MESSAGES = {
   "vault.empty.description.none": "ボルトフォルダーを選択すると、ファイルの閲覧を開始できます。",
   "vault.empty.action.working": "処理中...",
   "vault.empty.action.select_vault": "ボルトを選択",
-  "vault.empty.tree": "このボルトは空です。",
+  "vault.empty.tree": "このボルトは空です。+ ボタンで最初のノートを作成してください。",
 
   "search.placeholder": "ボルトを検索",
   "search.status.prefix": "状態",
@@ -623,9 +648,12 @@ export const JA_MESSAGES = {
   "chat.input.placeholder.ask": "ボルトについて質問してください…",
   "chat.input.no_matching_files": "一致するMarkdownファイルはありません",
   "chat.input.vault_root": "ボルトルート",
+  "chat.input.add_file": "ファイルを追加",
   "chat.input.remove_file": "{{name}} を削除",
   "chat.input.send": "送信",
   "chat.input.stop": "停止",
+  "chat.input.codex_settings": "Codex 設定",
+  "chat.input.codex_settings.mode": "モード",
   "chat.header.cancel": "キャンセル",
   "chat.header.clear": "チャットをクリア",
   "chat.header.auto_accept": "自動承認",
@@ -638,13 +666,13 @@ export const JA_MESSAGES = {
   "chat.panel.setup.description":
     "エージェント操作を始める前に Codex CLI を接続するか OpenAI キーを追加してください。",
   "chat.panel.setup.opening": "開いています...",
-  "chat.panel.setup.sign_in": "Kuku でログイン",
+  "chat.panel.setup.sign_in": "Momo でログイン",
   "chat.panel.setup.remote_hint":
-    "Kuku Remote は一度ログインすれば使えます。この端末でローカルAPIキーは不要です。",
+    "Momo Remote は一度ログインすれば使えます。この端末でローカルAPIキーは不要です。",
   "chat.panel.setup.or": "または",
   "chat.panel.setup.open_codex": "Codex 設定を開く",
   "chat.panel.setup.codex_hint":
-    "Codex CLI をインストールしてログインしてください。Kuku は準備状態だけを確認します。",
+    "Codex CLI をインストールしてログインしてください。Momo は準備状態だけを確認します。",
   "chat.panel.setup.check_again": "再チェック",
   "chat.panel.setup.checking": "確認中...",
   "chat.panel.setup.continue_without_agent": "エージェントなしで続行",
@@ -654,7 +682,7 @@ export const JA_MESSAGES = {
   "chat.panel.setup.copy_diagnostic": "診断をコピー",
   "chat.panel.permission.title": "権限が必要です",
   "chat.panel.permission.description":
-    "アカウント -> 権限で、AI Chat の Kuku セッション利用を許可してください。",
+    "アカウント -> 権限で、AI Chat の Momo セッション利用を許可してください。",
 
   "chat.welcome.title": "こんにちは",
   "chat.welcome.subtitle.agent": "一緒に考える、あなたの第二の脳",

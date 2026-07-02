@@ -1,20 +1,18 @@
-import { For, Show } from "solid-js";
+import { For, Show, type JSX } from "solid-js";
 
 import {
   PROJECT_STATUSES,
   WORK_ITEM_STATUSES,
   WORK_PRIORITIES,
-  updateWorkProjectStatus,
   workOsState,
   type WorkItem,
   type WorkItemStatus,
   type WorkPriority,
-  type WorkProject,
   type WorkProjectStatus,
 } from "./work_os_store";
 
 const SELECT_CLASS =
-  "rounded-xs border border-border bg-bg-primary px-2 py-1.5 text-xs text-text-secondary outline-none transition-colors focus:border-border-focused";
+  "w-full rounded-xs border border-border bg-bg-secondary/70 px-2 py-1.5 font-mono text-[0.75rem] text-text-secondary outline-none transition-colors focus:border-border-focused";
 const INPUT_CLASS =
   "min-w-0 rounded-xs border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-border-focused";
 const BUTTON_CLASS =
@@ -24,7 +22,7 @@ function Metric(props: { label: string; value: number }) {
   return (
     <div class="rounded-xs border border-border bg-bg-primary px-2 py-1.5">
       <p class="text-[0.6875rem] text-text-muted">{props.label}</p>
-      <p class="mt-0.5 text-sm font-semibold text-text-primary">{props.value}</p>
+      <p class="mt-0.5 font-mono text-sm font-semibold text-text-primary">{props.value}</p>
     </div>
   );
 }
@@ -38,23 +36,49 @@ function SectionHeader(props: { title: string; detail: string }) {
   );
 }
 
+function DailySignal(props: { label: string; value: number; detail: string }) {
+  return (
+    <div class="rounded-xs border border-border bg-bg-primary px-3 py-2">
+      <div class="flex items-baseline justify-between gap-3">
+        <p class="text-xs text-text-secondary">{props.label}</p>
+        <p class="font-mono text-sm font-semibold text-text-primary">{props.value}</p>
+      </div>
+      <p class="mt-1 truncate text-[0.75rem] text-text-muted">{props.detail}</p>
+    </div>
+  );
+}
+
 function WorkItemList(props: {
   items: readonly WorkItem[];
   emptyLabel: string;
   onPriority: (id: string, priority: WorkPriority) => void;
   onStatus: (id: string, status: WorkItemStatus) => void;
+  onDate: (id: string, scheduleDate: string | null) => void;
+  onDelete: (id: string) => void;
 }) {
   return (
-    <div class="mt-3 grid gap-1.5">
+    <div class="mt-3 min-w-0 overflow-hidden rounded-xs border border-border bg-bg-primary">
+      <DatabaseBar
+        count={props.items.length}
+        label="Daily to-do list"
+        properties="Status / Priority / Project / Date"
+      />
+      <TableHeader columns="2xl:grid 2xl:grid-cols-[minmax(12rem,1fr)_7rem_7rem_10rem_8rem_5rem]">
+        <span>To-do</span>
+        <span>Status</span>
+        <span>Priority</span>
+        <span>Project</span>
+        <span>Date</span>
+        <span>Action</span>
+      </TableHeader>
       <Show when={props.items.length > 0} fallback={<EmptyRow label={props.emptyLabel} />}>
         <For each={props.items}>
           {(item) => (
-            <article class="grid gap-2 rounded-xs border border-border bg-bg-primary p-2.5 md:grid-cols-[minmax(0,1fr)_8rem_7rem]">
+            <article class="grid min-w-0 gap-2 border-b border-border p-2.5 transition-colors last:border-b-0 hover:bg-ghost-hover 2xl:grid-cols-[minmax(12rem,1fr)_7rem_7rem_10rem_8rem_5rem] 2xl:items-center">
               <div class="min-w-0">
                 <p class="truncate text-sm font-medium text-text-primary">{item.title}</p>
                 <p class="mt-1 truncate text-[0.75rem] text-text-muted">
-                  {projectNameFor(item.projectId) ?? "No project"}
-                  <Show when={item.scheduleDate}> - {item.scheduleDate}</Show>
+                  created {formatDate(item.createdAt)}
                 </p>
               </div>
               <StatusSelect
@@ -65,6 +89,21 @@ function WorkItemList(props: {
                 value={item.priority}
                 onChange={(priority) => props.onPriority(item.id, priority)}
               />
+              <TableText value={projectNameFor(item.projectId) ?? "No project"} />
+              <input
+                class={SELECT_CLASS}
+                aria-label={`To-do date for ${item.title}`}
+                type="date"
+                value={item.scheduleDate ?? ""}
+                onInput={(event) => props.onDate(item.id, event.currentTarget.value || null)}
+              />
+              <button
+                type="button"
+                class="rounded-xs border border-border bg-bg-primary px-2 py-1.5 text-xs text-text-secondary transition-colors hover:bg-ghost-hover hover:text-text-primary"
+                onClick={() => props.onDelete(item.id)}
+              >
+                Delete
+              </button>
             </article>
           )}
         </For>
@@ -73,28 +112,35 @@ function WorkItemList(props: {
   );
 }
 
-function ProjectList(props: { projects: readonly WorkProject[] }) {
+function DatabaseBar(props: { label: string; count: number; properties: string }) {
   return (
-    <div class="mt-3 grid gap-1.5">
-      <Show when={props.projects.length > 0} fallback={<EmptyRow label="No projects yet" />}>
-        <For each={props.projects}>
-          {(project) => (
-            <article class="grid gap-2 rounded-xs border border-border bg-bg-primary p-2.5 sm:grid-cols-[minmax(0,1fr)_8rem]">
-              <div class="min-w-0">
-                <p class="truncate text-sm font-medium text-text-primary">{project.name}</p>
-                <Show when={project.scheduleDate}>
-                  <p class="mt-1 text-[0.75rem] text-text-muted">{project.scheduleDate}</p>
-                </Show>
-              </div>
-              <ProjectStatusSelect
-                value={project.status}
-                onChange={(status) => updateWorkProjectStatus(project.id, status)}
-              />
-            </article>
-          )}
-        </For>
-      </Show>
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-bg-primary px-2.5 py-2">
+      <div class="flex min-w-0 items-center gap-2">
+        <p class="truncate text-[0.75rem] font-semibold text-text-secondary">{props.label}</p>
+        <span class="rounded-xs border border-border bg-bg-secondary/70 px-1.5 py-0.5 font-mono text-[0.625rem] text-text-muted">
+          {props.count} rows
+        </span>
+      </div>
+      <p class="truncate font-mono text-[0.6875rem] text-text-muted">{props.properties}</p>
     </div>
+  );
+}
+
+function TableHeader(props: { columns: string; children: JSX.Element }) {
+  return (
+    <div
+      class={`hidden border-b border-border bg-bg-secondary/70 px-2.5 py-1.5 text-[0.6875rem] font-semibold tracking-[0.12em] text-text-muted uppercase ${props.columns}`}
+    >
+      {props.children}
+    </div>
+  );
+}
+
+function TableText(props: { value: string }) {
+  return (
+    <p class="min-w-0 truncate rounded-xs border border-transparent bg-bg-secondary/70 px-2 py-1 text-[0.75rem] text-text-secondary">
+      {props.value}
+    </p>
   );
 }
 
@@ -106,11 +152,15 @@ function EmptyRow(props: { label: string }) {
   );
 }
 
-function ProjectSelect(props: { value: string | null; onChange: (value: string | null) => void }) {
+function ProjectSelect(props: {
+  value: string | null;
+  onChange: (value: string | null) => void;
+  label?: string;
+}) {
   return (
     <select
       class={SELECT_CLASS}
-      aria-label="Task project"
+      aria-label={props.label ?? "Project"}
       value={props.value ?? ""}
       onChange={(event) => props.onChange(event.currentTarget.value || null)}
     >
@@ -173,6 +223,10 @@ function projectNameFor(projectId: string | null): string | null {
   return workOsState.projects.find((project) => project.id === projectId)?.name ?? null;
 }
 
+function formatDate(value: string): string {
+  return value.slice(0, 10);
+}
+
 function workItemStatusFromValue(value: string, fallback: WorkItemStatus): WorkItemStatus {
   return WORK_ITEM_STATUSES.find((status) => status === value) ?? fallback;
 }
@@ -187,12 +241,18 @@ function priorityFromValue(value: string, fallback: WorkPriority): WorkPriority 
 
 export {
   BUTTON_CLASS,
+  DailySignal,
+  DatabaseBar,
   EmptyRow,
   INPUT_CLASS,
   Metric,
   PrioritySelect,
-  ProjectList,
   ProjectSelect,
+  ProjectStatusSelect,
+  SELECT_CLASS,
   SectionHeader,
+  StatusSelect,
+  TableHeader,
+  TableText,
   WorkItemList,
 };

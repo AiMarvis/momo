@@ -71,7 +71,14 @@ pub fn run() {
                     // for a different scheme pair in their bundle config.
                     let is_auth_url = matches!(
                         url.scheme(),
-                        "kuku" | "com.kuku.app" | "kuku-preview" | "com.kuku.app.preview"
+                        "momo"
+                            | "com.momo.app"
+                            | "momo-preview"
+                            | "com.momo.app.preview"
+                            | "kuku"
+                            | "com.kuku.app"
+                            | "kuku-preview"
+                            | "com.kuku.app.preview"
                     ) && url.host_str() == Some("auth");
                     if !is_auth_url {
                         continue;
@@ -110,6 +117,8 @@ pub fn run() {
             agent_provider::agent_get_openai_api_key_status,
             agent_provider::agent_set_openai_api_key,
             agent_provider::agent_clear_openai_api_key,
+            agent_provider::agent_create_codex_plan,
+            agent_provider::agent_run_codex_chat,
             // Plugin FS (sandboxed)
             plugin_fs::plugin_fs_read_text,
             plugin_fs::plugin_fs_write_text,

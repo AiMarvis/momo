@@ -3,6 +3,8 @@ import type { AgentPlan, AgentPlanValidationResult } from "./agent_plan_types";
 
 interface ProviderPlanRequest {
   readonly sourceNote: string;
+  readonly sourceMarkdown?: string;
+  readonly relatedOutputs?: readonly string[];
   readonly signal?: AbortSignal;
 }
 
@@ -37,6 +39,8 @@ interface OpenAiFallbackApprovalRequest {
 
 interface RunAgentProviderAdaptersInput {
   readonly sourceNote: string;
+  readonly sourceMarkdown?: string;
+  readonly relatedOutputs?: readonly string[];
   readonly codex: CodexPlanAdapter;
   readonly openai: OpenAiPlanAdapter;
   readonly askOpenAiFallbackApproval: (request: OpenAiFallbackApprovalRequest) => Promise<boolean>;
@@ -54,51 +58,35 @@ type ProviderRunResult =
 async function runAgentProviderAdapters(
   input: RunAgentProviderAdaptersInput,
 ): Promise<AgentPlanValidationResult> {
-  if (await input.codex.ready()) {
-    const codexResult = await runProvider(input.codex, input.sourceNote, input.timeoutMs);
-    if (codexResult.kind !== "failed") return codexResult;
+  const request = {
+    sourceNote: input.sourceNote,
+    ...(input.sourceMarkdown === undefined ? {} : { sourceMarkdown: input.sourceMarkdown }),
+    relatedOutputs: input.relatedOutputs ?? [],
+  };
 
-    if (!(await input.openai.byokReady())) return invalid([codexResult.reason]);
-    const approved = await input.askOpenAiFallbackApproval({ reason: codexResult.reason });
-    if (!approved) return invalid(["OpenAI fallback was not approved"]);
-
-    const fallbackResult = await runProvider(input.openai, input.sourceNote, input.timeoutMs);
-    if (fallbackResult.kind === "failed") return invalid([fallbackResult.reason]);
-    if (fallbackResult.kind === "invalid") return fallbackResult;
-
-    return validateOrganizeInboxAgentPlan({
-      ...fallbackResult.plan,
-      provider: {
-        ...fallbackResult.plan.provider,
-        fallbackFrom: "codex_cli",
-        fallbackReason: codexResult.reason,
-        fallbackApprovedAt: input.nowIso?.() ?? new Date().toISOString(),
-      },
-    });
+  if (!(await input.codex.ready())) {
+    return invalid(["Codex CLI setup required"]);
   }
 
-  if (await input.openai.byokReady()) {
-    const directOpenAiResult = await runProvider(input.openai, input.sourceNote, input.timeoutMs);
-    return directOpenAiResult.kind === "failed"
-      ? invalid([directOpenAiResult.reason])
-      : directOpenAiResult;
-  }
-
-  return invalid(["Agent setup required"]);
+  const codexResult = await runProvider(input.codex, request, input.timeoutMs);
+  return codexResult.kind === "failed" ? invalid([codexResult.reason]) : codexResult;
 }
 
 async function runProvider(
   adapter: Pick<CodexPlanAdapter, "createPlan">,
-  sourceNote: string,
+  request: ProviderPlanRequest,
   timeoutMs: number | undefined,
 ): Promise<ProviderRunResult> {
-  const result = await createPlanWithTimeout(adapter, { sourceNote }, timeoutMs);
+  const result = await createPlanWithTimeout(adapter, request, timeoutMs);
   if (isProviderFailure(result)) return result;
   if (isInvalidJson(result)) return invalid(result.errors);
 
   const validation = validateOrganizeInboxAgentPlan(isPlanEnvelope(result) ? result.value : result);
   if (validation.kind === "invalid") return validation;
-  if (validation.plan.sourceNote !== sourceNote) {
+  if (validation.plan.provider.kind !== "codex_cli") {
+    return invalid(["plan.provider.kind must be codex_cli"]);
+  }
+  if (validation.plan.sourceNote !== request.sourceNote) {
     return invalid(["plan.sourceNote must match requested source note"]);
   }
   return validation;

@@ -17,7 +17,7 @@ export const KO_MESSAGES = {
   "settings.plugin.voxel_graph": "Agent World",
   "settings.plugin.account.title": "계정",
   "settings.plugin.account.description":
-    "어떤 플러그인이 Kuku 서버 세션을 사용할 수 있을지 관리해요.",
+    "어떤 플러그인이 Momo 서버 세션을 사용할 수 있을지 관리해요.",
   "settings.plugin.account.action.opening": "열고 있어요...",
   "settings.plugin.account.action.sign_in": "로그인",
   "settings.plugin.account.action.sign_out": "로그아웃",
@@ -32,7 +32,7 @@ export const KO_MESSAGES = {
     "플러그인이 서버 세션으로 요청하려면 먼저 권한 허용이 필요해요.",
   "settings.plugin.account.authorizations.empty": "아직 서버 세션 접근을 요청한 플러그인이 없어요.",
   "settings.plugin.account.authorizations.item_description":
-    "이 플러그인이 Kuku 서버 세션을 사용하도록 허용해요.",
+    "이 플러그인이 Momo 서버 세션을 사용하도록 허용해요.",
   "settings.plugin.indexer.title": "인덱서",
   "settings.plugin.indexer.description": "검색과 위키링크 그래프 인덱싱, 새로고침 정책을 관리해요.",
   "settings.plugin.indexer.storage.app_global": "앱 데이터 (~/.kuku/search)",
@@ -205,7 +205,7 @@ export const KO_MESSAGES = {
   "settings.plugin.ai_chat.guide.title": "빠른 안내",
   "settings.plugin.ai_chat.guide.connection_label": "연결:",
   "settings.plugin.ai_chat.guide.connection_before_link":
-    "“Kuku”는 현재 로그인한 계정을 사용해요. 이미 Kuku 계정을 쓰고 있다면 이게 가장 쉬워요. 한 번 로그인하면 대부분 이 화면을 더 건드릴 필요가 없어요. “내 Gemini API 키”는 Google",
+    "“Momo”는 현재 로그인한 계정을 사용해요. 이미 Momo 계정을 쓰고 있다면 이게 가장 쉬워요. 한 번 로그인하면 대부분 이 화면을 더 건드릴 필요가 없어요. “내 Gemini API 키”는 Google",
   "settings.plugin.ai_chat.guide.connection_after_link":
     "에서 발급한 개인 키용이에요(무료 티어로도 테스트 가능해요).",
   "settings.plugin.ai_chat.guide.save_label": "저장",
@@ -225,6 +225,31 @@ export const KO_MESSAGES = {
   "settings.plugin.ai_chat.agent_provider.check_again": "다시 확인",
   "settings.plugin.ai_chat.agent_provider.checking": "확인 중...",
   "settings.plugin.ai_chat.agent_provider.copy_diagnostic": "진단 복사",
+  "settings.plugin.ai_chat.codex_settings.default_mode.label": "기본 모드",
+  "settings.plugin.ai_chat.codex_settings.default_mode.description":
+    "AI 채팅을 열 때 먼저 선택될 모드예요.",
+  "settings.plugin.ai_chat.codex_settings.model.label": "OpenAI 모델",
+  "settings.plugin.ai_chat.codex_settings.model.description":
+    "Codex CLI의 --model로 전달돼요. 비워 두면 Codex 기본값을 사용해요.",
+  "settings.plugin.ai_chat.codex_settings.model.placeholder": "Codex 기본값",
+  "settings.plugin.ai_chat.codex_settings.model.custom": "직접 입력",
+  "settings.plugin.ai_chat.codex_settings.sandbox.label": "파일 접근",
+  "settings.plugin.ai_chat.codex_settings.sandbox.description":
+    "Codex CLI의 sandbox 모드로 전달돼요.",
+  "settings.plugin.ai_chat.codex_settings.sandbox.read_only": "읽기 전용",
+  "settings.plugin.ai_chat.codex_settings.sandbox.workspace_write": "워크스페이스 쓰기",
+  "settings.plugin.ai_chat.codex_settings.sandbox.danger_full_access": "전체 접근",
+  "settings.plugin.ai_chat.codex_settings.approval.label": "승인",
+  "settings.plugin.ai_chat.codex_settings.approval.description":
+    "Codex CLI의 승인 정책으로 전달돼요.",
+  "settings.plugin.ai_chat.codex_settings.approval.default": "Codex 기본값",
+  "settings.plugin.ai_chat.codex_settings.approval.untrusted": "신뢰되지 않은 작업에서 묻기",
+  "settings.plugin.ai_chat.codex_settings.approval.on_request": "요청 시 묻기",
+  "settings.plugin.ai_chat.codex_settings.approval.never": "묻지 않기",
+  "settings.plugin.ai_chat.codex_settings.web_search.label": "웹 검색",
+  "settings.plugin.ai_chat.codex_settings.web_search.description":
+    "이 앱에서 Codex CLI의 검색 플래그를 사용할 수 있게 해요.",
+  "settings.plugin.ai_chat.codex_settings.web_search.toggle": "검색 켜기",
   "settings.plugin.ai_chat.openai.cost_title": "OpenAI API 키",
   "settings.plugin.ai_chat.openai.cost_description":
     "OpenAI API 사용량은 OpenAI 계정에 과금될 수 있어요. 이 대체 경로는 실행할 때마다 명시적으로 확인해요.",
@@ -234,23 +259,23 @@ export const KO_MESSAGES = {
   "settings.plugin.ai_chat.openai.placeholder": "OpenAI API 키 붙여넣기",
   "settings.plugin.ai_chat.openai.save": "키 저장",
   "settings.plugin.ai_chat.openai.clear": "삭제",
-  "settings.plugin.ai_chat.account_banner.title": "Kuku 계정이 있나요?",
+  "settings.plugin.ai_chat.account_banner.title": "Momo 계정이 있나요?",
   "settings.plugin.ai_chat.account_banner.description":
-    "로그인 후 “Kuku (로그인됨)”을 고르면 바로 채팅돼요. 이 화면은 연결 방식/키 선택과 저장만 담당해요. 로그인, 세션, AI 권한은 계정 탭에서 관리해요.",
+    "로그인 후 “Momo (로그인됨)”을 고르면 바로 채팅돼요. 이 화면은 연결 방식/키 선택과 저장만 담당해요. 로그인, 세션, AI 권한은 계정 탭에서 관리해요.",
   "settings.plugin.ai_chat.account_banner.open_account": "계정 열기",
   "settings.plugin.ai_chat.connection.label": "연결 방식",
   "settings.plugin.ai_chat.connection.description":
-    "로그인되어 있다면 Kuku를 먼저 추천해요. 필요한 경우에만 개인 키로 바꾸세요.",
-  "settings.plugin.ai_chat.connection.option_remote": "Kuku (로그인됨) - 가장 쉬워요",
+    "로그인되어 있다면 Momo를 먼저 추천해요. 필요한 경우에만 개인 키로 바꾸세요.",
+  "settings.plugin.ai_chat.connection.option_remote": "Momo (로그인됨) - 가장 쉬워요",
   "settings.plugin.ai_chat.connection.option_gemini": "내 Gemini API 키",
   "settings.plugin.ai_chat.model.label": "모델",
   "settings.plugin.ai_chat.model.remote_description":
     "현재 Gemini 3.1 Flash Lite를 사용해요. 앱 업데이트에 따라 바뀔 수 있어요.",
   "settings.plugin.ai_chat.model.gemini_description":
     "개인 키 모드에서도 현재 Gemini 3.1 Flash Lite를 사용해요. 앱 업데이트에 따라 바뀔 수 있어요.",
-  "settings.plugin.ai_chat.remote_banner.title": "Kuku 모드 사용 중",
+  "settings.plugin.ai_chat.remote_banner.title": "Momo 모드 사용 중",
   "settings.plugin.ai_chat.remote_banner.description":
-    "이 화면에 API 키를 넣을 필요가 없어요. Kuku / Google 로그인으로 이미 인증되었어요. 채팅 권한 문제가 보이면 설정의 계정 탭을 확인해 주세요.",
+    "이 화면에 API 키를 넣을 필요가 없어요. Momo / Google 로그인으로 이미 인증되었어요. 채팅 권한 문제가 보이면 설정의 계정 탭을 확인해 주세요.",
   "settings.plugin.ai_chat.gemini_banner.title": "개인 키 사용하기",
   "settings.plugin.ai_chat.gemini_banner.step1":
     "Google AI Studio를 열어 주세요(위 빠른 안내 링크).",
@@ -426,11 +451,11 @@ export const KO_MESSAGES = {
   "settings.files.deleted.trash": "시스템 휴지통으로 이동",
   "settings.files.deleted.kuku_trash": ".trash 폴더로 이동",
   "settings.files.deleted.permanent": "영구 삭제",
-  "settings.files.kuku_trash.label": "Kuku 휴지통",
+  "settings.files.kuku_trash.label": "Momo 휴지통",
   "settings.files.kuku_trash.description":
     ".trash 폴더는 파일 트리에서 숨겨져요. 필요할 때 Finder에서 열거나 비울 수 있어요.",
   "settings.files.kuku_trash.confirm_description":
-    "정말 비울까요? Kuku 휴지통 안의 파일이 영구 삭제돼요.",
+    "정말 비울까요? Momo 휴지통 안의 파일이 영구 삭제돼요.",
   "settings.files.kuku_trash.open": "휴지통 열기",
   "settings.files.kuku_trash.empty": "휴지통 비우기",
   "settings.files.kuku_trash.confirm_empty": "비우기 확인",
@@ -516,7 +541,7 @@ export const KO_MESSAGES = {
   "vault.empty.description.none": "지식보관함 폴더를 선택하면 파일 탐색을 바로 시작할 수 있어요.",
   "vault.empty.action.working": "처리하고 있어요...",
   "vault.empty.action.select_vault": "지식보관함 고르기",
-  "vault.empty.tree": "지식보관함이 비어 있어요.",
+  "vault.empty.tree": "지식보관함이 비어 있어요. + 버튼으로 첫 노트를 만드세요.",
 
   "search.placeholder": "지식보관함 검색",
   "search.status.prefix": "인덱스 상태",
@@ -616,9 +641,12 @@ export const KO_MESSAGES = {
   "chat.input.placeholder.ask": "지식보관함에 대해 무엇이든 물어보세요…",
   "chat.input.no_matching_files": "일치하는 마크다운 파일이 없어요",
   "chat.input.vault_root": "지식보관함 루트",
+  "chat.input.add_file": "파일 추가",
   "chat.input.remove_file": "{{name}} 첨부 해제",
   "chat.input.send": "보내기",
   "chat.input.stop": "중단",
+  "chat.input.codex_settings": "Codex 설정",
+  "chat.input.codex_settings.mode": "모드",
   "chat.header.cancel": "취소",
   "chat.header.clear": "채팅 비우기",
   "chat.header.auto_accept": "자동 승인",
@@ -631,12 +659,12 @@ export const KO_MESSAGES = {
   "chat.panel.setup.description":
     "에이전트 작업을 시작하기 전에 Codex CLI를 연결하거나 OpenAI 키를 추가해 주세요.",
   "chat.panel.setup.opening": "열고 있어요...",
-  "chat.panel.setup.sign_in": "Kuku로 로그인",
+  "chat.panel.setup.sign_in": "Momo로 로그인",
   "chat.panel.setup.remote_hint":
-    "Kuku Remote는 한 번 로그인하면 끝나요. 이 기기에서 로컬 API 키가 필요 없어요.",
+    "Momo Remote는 한 번 로그인하면 끝나요. 이 기기에서 로컬 API 키가 필요 없어요.",
   "chat.panel.setup.or": "또는",
   "chat.panel.setup.open_codex": "Codex 설정 열기",
-  "chat.panel.setup.codex_hint": "Codex CLI를 설치하고 로그인하세요. Kuku는 준비 상태만 확인해요.",
+  "chat.panel.setup.codex_hint": "Codex CLI를 설치하고 로그인하세요. Momo는 준비 상태만 확인해요.",
   "chat.panel.setup.check_again": "다시 확인",
   "chat.panel.setup.checking": "확인 중...",
   "chat.panel.setup.continue_without_agent": "에이전트 없이 계속",
@@ -646,7 +674,7 @@ export const KO_MESSAGES = {
   "chat.panel.setup.copy_diagnostic": "진단 복사",
   "chat.panel.permission.title": "권한 설정이 필요해요",
   "chat.panel.permission.description":
-    "계정 → 권한에서 AI 채팅이 Kuku 세션을 사용할 수 있게 허용해 주세요.",
+    "계정 → 권한에서 AI 채팅이 Momo 세션을 사용할 수 있게 허용해 주세요.",
 
   "chat.welcome.title": "안녕하세요!",
   "chat.welcome.subtitle.agent": "생각을 함께 정리해 주는 지식 파트너예요",

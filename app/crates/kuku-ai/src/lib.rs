@@ -37,7 +37,6 @@ pub fn init() -> TauriPlugin<Wry> {
         })
         .invoke_handler(tauri::generate_handler![
             commands::ai_new_session,
-            commands::ai_send_message,
             commands::ai_cancel,
             commands::ai_get_config,
             commands::ai_set_config,

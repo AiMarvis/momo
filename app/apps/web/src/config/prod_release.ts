@@ -20,10 +20,10 @@ export const prodRelease = {
   webUrl,
   siteUrl,
   apiBaseUrl,
-  notes: `Kuku ${version}`,
+  notes: `Momo ${version}`,
   assets: {
-    macDmg: `Kuku_${version}_aarch64.dmg`,
-    updaterTarGz: "Kuku.app.tar.gz",
+    macDmg: `Momo_${version}_aarch64.dmg`,
+    updaterTarGz: "Momo.app.tar.gz",
   },
 } as const;
 

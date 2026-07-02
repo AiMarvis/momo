@@ -2561,51 +2561,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kuku-app"
-version = "0.0.0"
-dependencies = [
- "argon2",
- "async-trait",
- "base64 0.22.1",
- "bip39",
- "blake3",
- "chacha20poly1305",
- "chrono",
- "connectrpc",
- "dirs",
- "ed25519-dalek",
- "hex",
- "http",
- "icu_normalizer",
- "keyring",
- "kuku-ai",
- "kuku-contract",
- "kuku-indexer",
- "notify",
- "parking_lot",
- "rand_core 0.6.4",
- "regex",
- "reqwest",
- "rusqlite",
- "serde",
- "serde_json",
- "serde_yaml",
- "sha2",
- "tar",
- "tauri",
- "tauri-build",
- "tauri-plugin-deep-link",
- "tauri-plugin-dialog",
- "tauri-plugin-opener",
- "tauri-plugin-process",
- "tauri-plugin-updater",
- "tokio",
- "trash",
- "webpki-roots 0.26.11",
- "zstd",
-]
-
-[[package]]
 name = "kuku-contract"
 version = "0.1.0"
 dependencies = [
@@ -2812,6 +2767,51 @@ dependencies = [
  "log",
  "wasi",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "momo"
+version = "0.0.0"
+dependencies = [
+ "argon2",
+ "async-trait",
+ "base64 0.22.1",
+ "bip39",
+ "blake3",
+ "chacha20poly1305",
+ "chrono",
+ "connectrpc",
+ "dirs",
+ "ed25519-dalek",
+ "hex",
+ "http",
+ "icu_normalizer",
+ "keyring",
+ "kuku-ai",
+ "kuku-contract",
+ "kuku-indexer",
+ "notify",
+ "parking_lot",
+ "rand_core 0.6.4",
+ "regex",
+ "reqwest",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2",
+ "tar",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-deep-link",
+ "tauri-plugin-dialog",
+ "tauri-plugin-opener",
+ "tauri-plugin-process",
+ "tauri-plugin-updater",
+ "tokio",
+ "trash",
+ "webpki-roots 0.26.11",
+ "zstd",
 ]
 
 [[package]]

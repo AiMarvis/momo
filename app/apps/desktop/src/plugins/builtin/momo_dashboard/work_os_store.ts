@@ -1,52 +1,9 @@
 import { createStore } from "solid-js/store";
 
+import { PROJECT_STATUSES, WORK_ITEM_STATUSES, WORK_PRIORITIES } from "./work_os_model";
+import type { WorkIdea, WorkItem, WorkItemDraft, WorkItemStatus, WorkOsState, WorkPriority, WorkProject, WorkProjectDateRange, WorkProjectDraft, WorkProjectStatus } from "./work_os_model";
+
 const WORK_OS_STORAGE_KEY = "momo-work-os-v1";
-
-const WORK_ITEM_STATUSES = ["todo", "doing", "done"] as const;
-const PROJECT_STATUSES = ["active", "paused", "done"] as const;
-const WORK_PRIORITIES = ["low", "medium", "high"] as const;
-
-type WorkItemStatus = (typeof WORK_ITEM_STATUSES)[number];
-type WorkProjectStatus = (typeof PROJECT_STATUSES)[number];
-type WorkPriority = (typeof WORK_PRIORITIES)[number];
-
-interface WorkItemDraft {
-  readonly title: string;
-  readonly projectId: string | null;
-  readonly priority: WorkPriority;
-  readonly scheduleDate?: string | null;
-}
-
-interface WorkItem {
-  readonly id: string;
-  readonly title: string;
-  readonly projectId: string | null;
-  readonly status: WorkItemStatus;
-  readonly priority: WorkPriority;
-  readonly scheduleDate: string | null;
-  readonly createdAt: string;
-}
-
-interface WorkProject {
-  readonly id: string;
-  readonly name: string;
-  readonly status: WorkProjectStatus;
-  readonly scheduleDate: string | null;
-  readonly createdAt: string;
-}
-
-interface WorkIdea {
-  readonly id: string;
-  readonly text: string;
-  readonly createdAt: string;
-}
-
-interface WorkOsState {
-  readonly tasks: readonly WorkItem[];
-  readonly issues: readonly WorkItem[];
-  readonly projects: readonly WorkProject[];
-  readonly ideas: readonly WorkIdea[];
-}
 
 const EMPTY_WORK_OS_STATE: WorkOsState = {
   tasks: [],
@@ -61,12 +18,14 @@ function initWorkOsStore(): void {
   setWorkOsState(loadWorkOsSnapshot());
 }
 
-function createWorkProject(name: string, scheduleDate: string | null = null): WorkProject {
+function createWorkProject(draft: WorkProjectDraft): WorkProject {
+  const range = normalizeProjectDateRange(draft.startDate, draft.endDate);
   const project: WorkProject = {
     id: createId("project"),
-    name: normalizeTitle(name) || "Untitled project",
+    name: normalizeTitle(draft.name) || "Untitled project",
     status: "active",
-    scheduleDate: normalizeDate(scheduleDate),
+    startDate: range.startDate,
+    endDate: range.endDate,
     createdAt: new Date().toISOString(),
   };
   setWorkOsState("projects", (projects) => [project, ...projects]);
@@ -114,6 +73,11 @@ function updateWorkTaskPriority(id: string, priority: WorkPriority): void {
   persistWorkOsState();
 }
 
+function updateWorkTaskScheduleDate(id: string, scheduleDate: string | null): void {
+  setWorkOsState("tasks", (task) => task.id === id, "scheduleDate", normalizeDate(scheduleDate));
+  persistWorkOsState();
+}
+
 function updateWorkIssuePriority(id: string, priority: WorkPriority): void {
   setWorkOsState("issues", (issue) => issue.id === id, "priority", priority);
   persistWorkOsState();
@@ -121,6 +85,29 @@ function updateWorkIssuePriority(id: string, priority: WorkPriority): void {
 
 function updateWorkProjectStatus(id: string, status: WorkProjectStatus): void {
   setWorkOsState("projects", (project) => project.id === id, "status", status);
+  persistWorkOsState();
+}
+
+function updateWorkProjectDates(id: string, startDate: string | null, endDate: string | null): void {
+  const range = normalizeProjectDateRange(startDate, endDate);
+  setWorkOsState("projects", (project) => project.id === id, "startDate", range.startDate);
+  setWorkOsState("projects", (project) => project.id === id, "endDate", range.endDate);
+  persistWorkOsState();
+}
+
+function deleteWorkTask(id: string): void {
+  setWorkOsState("tasks", (tasks) => tasks.filter((task) => task.id !== id));
+  persistWorkOsState();
+}
+
+function deleteWorkProject(id: string): void {
+  setWorkOsState("projects", (projects) => projects.filter((project) => project.id !== id));
+  setWorkOsState("tasks", (tasks) =>
+    tasks.map((task) => (task.projectId === id ? { ...task, projectId: null } : task)),
+  );
+  setWorkOsState("issues", (issues) =>
+    issues.map((issue) => (issue.projectId === id ? { ...issue, projectId: null } : issue)),
+  );
   persistWorkOsState();
 }
 
@@ -206,12 +193,18 @@ function normalizeWorkProject(value: unknown): WorkProject | null {
   const id = normalizeTitle(value.id);
   const name = normalizeTitle(value.name);
   if (!id || !name) return null;
+  const legacyDate = normalizeDate(value.scheduleDate);
+  const range = normalizeProjectDateRange(
+    normalizeDate(value.startDate) ?? legacyDate,
+    normalizeDate(value.endDate) ?? legacyDate,
+  );
 
   return {
     id,
     name,
     status: isWorkProjectStatus(value.status) ? value.status : "active",
-    scheduleDate: normalizeDate(value.scheduleDate),
+    startDate: range.startDate,
+    endDate: range.endDate,
     createdAt: normalizeTitle(value.createdAt) || new Date().toISOString(),
   };
 }
@@ -236,6 +229,17 @@ function normalizeTitle(value: unknown): string {
 function normalizeDate(value: unknown): string | null {
   const date = normalizeTitle(value);
   return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
+}
+
+function normalizeProjectDateRange(startValue: unknown, endValue: unknown): WorkProjectDateRange {
+  const startDate = normalizeDate(startValue);
+  const endDate = normalizeDate(endValue);
+  const firstDate = startDate ?? endDate;
+  const lastDate = endDate ?? startDate;
+  if (firstDate && lastDate && lastDate < firstDate) {
+    return { startDate: firstDate, endDate: firstDate };
+  }
+  return { startDate: firstDate, endDate: lastDate };
 }
 
 function normalizeNullableTitle(value: unknown): string | null {
@@ -268,22 +272,5 @@ function createId(prefix: string): string {
   return `${prefix}-${randomUuid ? randomUuid.call(globalThis.crypto) : `${Date.now()}`}`;
 }
 
-export {
-  PROJECT_STATUSES,
-  WORK_ITEM_STATUSES,
-  WORK_PRIORITIES,
-  createWorkIdea,
-  createWorkIssue,
-  createWorkProject,
-  createWorkTask,
-  deleteWorkIdea,
-  initWorkOsStore,
-  resetWorkOsState,
-  updateWorkIssuePriority,
-  updateWorkIssueStatus,
-  updateWorkProjectStatus,
-  updateWorkTaskPriority,
-  updateWorkTaskStatus,
-  workOsState,
-};
+export { PROJECT_STATUSES, WORK_ITEM_STATUSES, WORK_PRIORITIES, createWorkIdea, createWorkIssue, createWorkProject, createWorkTask, deleteWorkProject, deleteWorkTask, deleteWorkIdea, initWorkOsStore, resetWorkOsState, updateWorkIssuePriority, updateWorkIssueStatus, updateWorkProjectDates, updateWorkProjectStatus, updateWorkTaskPriority, updateWorkTaskScheduleDate, updateWorkTaskStatus, workOsState };
 export type { WorkIdea, WorkItem, WorkItemStatus, WorkPriority, WorkProject, WorkProjectStatus };

@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, For, onCleanup, Show, type JSX } from "solid-js";
+import { createEffect, createMemo, createSignal, For, Show, type JSX } from "solid-js";
 
 import ScrollArea from "~/components/scroll_area";
 import { t, tf } from "~/i18n";
@@ -15,47 +15,22 @@ import {
   sendMessage,
   setAutoApprove,
   setDraft,
-  switchMode,
 } from "../chat_store";
+import { CodexSettingsPopover } from "./codex_settings_popover";
 import {
   fileAttachmentFromSuggestion,
   getFileEmbedSuggestions,
   resolveFileMentionTrigger,
   type FileMentionTrigger,
 } from "../file_embed";
-import type { ChatMode } from "../types";
-
-const MODE_OPTIONS: {
-  value: ChatMode;
-  title: Parameters<typeof t>[0];
-  desc: Parameters<typeof t>[0];
-}[] = [
-  { value: "agent", title: "chat.mode.agent.title", desc: "chat.mode.agent.desc" },
-  { value: "ask", title: "chat.mode.ask.title", desc: "chat.mode.ask.desc" },
-  { value: "inline", title: "chat.mode.inline.title", desc: "chat.mode.inline.desc" },
-];
-
-function modeTitle(mode: ChatMode): string {
-  switch (mode) {
-    case "agent":
-      return t("chat.mode.agent.title");
-    case "ask":
-      return t("chat.mode.ask.title");
-    case "inline":
-      return t("chat.mode.inline.title");
-    default:
-      return mode;
-  }
-}
 
 function ChatInput(): JSX.Element {
   let textareaRef: HTMLTextAreaElement | undefined;
   let fileSuggestionMenuRef: HTMLElement | undefined;
-  let modeMenuRootRef: HTMLDivElement | undefined;
+  let applyPendingCodexSettings = async () => true;
   const [draft, setLocalDraft] = createSignal("");
   const [fileMention, setFileMention] = createSignal<FileMentionTrigger | null>(null);
   const [fileMentionIndex, setFileMentionIndex] = createSignal(0);
-  const [showModeMenu, setShowModeMenu] = createSignal(false);
 
   const session = () =>
     chatState.activeSessionId ? (chatState.sessions[chatState.activeSessionId] ?? null) : null;
@@ -104,29 +79,11 @@ function ChatInput(): JSX.Element {
     });
   });
 
-  /** Close mode menu on outside press or Escape. */
-  createEffect(() => {
-    if (!showModeMenu()) return;
-    const onPointerDown = (e: PointerEvent) => {
-      if (modeMenuRootRef == null) return;
-      if (!modeMenuRootRef.contains(e.target as Node)) {
-        setShowModeMenu(false);
-      }
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setShowModeMenu(false);
-    };
-    document.addEventListener("pointerdown", onPointerDown, true);
-    document.addEventListener("keydown", onKeyDown, true);
-    onCleanup(() => {
-      document.removeEventListener("pointerdown", onPointerDown, true);
-      document.removeEventListener("keydown", onKeyDown, true);
-    });
-  });
-
   async function submit(): Promise<void> {
     const value = draft();
     if (!value.trim()) return;
+    const saved = await applyPendingCodexSettings();
+    if (!saved) return;
     const sent = await sendMessage(value);
     if (sent) {
       setLocalDraft("");
@@ -183,6 +140,20 @@ function ChatInput(): JSX.Element {
     setLocalDraft(value);
     setDraft(value);
     refreshFileMention();
+  }
+
+  function openFileMentionPicker(): void {
+    if (isLocked()) return;
+    const textarea = textareaRef;
+    const cursor = textarea?.selectionStart ?? draft().length;
+    const nextDraft = `${draft().slice(0, cursor)}@${draft().slice(cursor)}`;
+    setLocalDraft(nextDraft);
+    setDraft(nextDraft);
+    requestAnimationFrame(() => {
+      textareaRef?.focus();
+      textareaRef?.setSelectionRange(cursor + 1, cursor + 1);
+      refreshFileMention();
+    });
   }
 
   function refreshFileMention(): void {
@@ -352,55 +323,22 @@ function ChatInput(): JSX.Element {
           onKeyUp={handleKeyUp}
         />
 
-        <div class="mt-0.5 flex min-h-8 items-center justify-between gap-2 border-t border-border/50 pt-1.5">
-          <div class="flex min-w-0 items-center gap-2.5">
-            <div class="relative" ref={(el) => (modeMenuRootRef = el)}>
-              <button
-                type="button"
-                class="inline-flex min-h-7 -translate-y-px items-center gap-1 rounded-sm px-1.5 py-1 text-[0.8125rem] font-medium text-text-secondary transition hover:bg-ghost-hover hover:text-text-primary"
-                onClick={() => setShowModeMenu(!showModeMenu())}
-              >
-                <span class="max-w-24 truncate capitalize sm:max-w-none">
-                  {modeTitle(chatState.selectedMode)}
-                </span>
-                <svg
-                  class="shrink-0 translate-y-px text-text-muted"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  aria-hidden="true"
-                >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
-              <Show when={showModeMenu()}>
-                <div class="absolute bottom-full left-0 z-50 mb-1.5 w-[min(100vw-1rem,17rem)] min-w-[16rem] overflow-hidden rounded-sm border border-border bg-bg-elevated py-1">
-                  <For each={MODE_OPTIONS}>
-                    {(opt) => (
-                      <button
-                        type="button"
-                        class="flex w-full flex-col items-start gap-0.5 p-2.5 text-left transition hover:bg-ghost-hover"
-                        classList={{
-                          "bg-ghost-hover": chatState.selectedMode === opt.value,
-                        }}
-                        onClick={() => {
-                          void switchMode(opt.value);
-                          setShowModeMenu(false);
-                        }}
-                      >
-                        <span class="text-[0.8125rem] font-medium text-text-primary">
-                          {t(opt.title)}
-                        </span>
-                        <span class="text-xs/snug text-text-muted">{t(opt.desc)}</span>
-                      </button>
-                    )}
-                  </For>
-                </div>
-              </Show>
-            </div>
+        <div class="mt-0.5 flex min-h-8 items-center gap-1.5 border-t border-border/50 pt-1.5">
+          <button
+            type="button"
+            class="flex size-7 shrink-0 items-center justify-center rounded-sm text-[1.15rem] leading-none text-text-muted transition hover:bg-ghost-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+            title={t("chat.input.add_file")}
+            disabled={isLocked()}
+            onClick={openFileMentionPicker}
+          >
+            +
+          </button>
+          <div class="flex min-w-0 flex-1 items-center gap-1">
+            <CodexSettingsPopover
+              registerApply={(apply) => {
+                applyPendingCodexSettings = apply;
+              }}
+            />
           </div>
 
           <div class="shrink-0">

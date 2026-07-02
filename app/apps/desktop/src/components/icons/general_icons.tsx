@@ -209,6 +209,33 @@ export function SearchIcon(props: IconProps) {
   );
 }
 
+export function CalendarIcon(props: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      width={props.size ?? 16}
+      height={props.size ?? 16}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class={props.class}
+    >
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M3 10h18" />
+      <path d="M8 14h.01" />
+      <path d="M12 14h.01" />
+      <path d="M16 14h.01" />
+      <path d="M8 18h.01" />
+      <path d="M12 18h.01" />
+    </svg>
+  );
+}
+
 export function SettingsIcon(props: IconProps) {
   return (
     <svg
@@ -302,49 +329,6 @@ export function MessageSquareIcon(props: IconProps) {
       class={props.class}
     >
       <path d="M14 10a1.333 1.333 0 0 1-1.333 1.333h-8L2 14V3.333A1.333 1.333 0 0 1 3.333 2h9.334A1.333 1.333 0 0 1 14 3.333z" />
-    </svg>
-  );
-}
-
-export function KukuIcon(props: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      width={props.size ?? 16}
-      height={props.size ?? 16}
-      viewBox="0 0 26 26"
-      fill="none"
-      class={props.class}
-    >
-      <g
-        clip-path="url(#kuku-clip)"
-        stroke="currentColor"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        {/* Body */}
-        <path
-          d="M4.522 1.145c.894-.054 1.924.088 2.98.305 1.06.217 2.187.517 3.27.796 1.091.281 2.14.54 3.078.688a32 32 0 0 0 2.58.283c.776.06 1.508.105 2.178.197 1.367.188 2.556.575 3.657 1.699 2.165 2.208 2.366 5.654 1.973 8.556-.414 3.055-1.942 4.362-3.905 6.47-.965 1.037-1.884 2.16-2.874 3.017-1.013.877-2.16 1.536-3.647 1.655-2.895.232-5.862-1.379-7.7-3.614-.97-1.178-1.18-2.189-1.25-3.346-.07-1.137-.01-2.35-.39-4.146-.186-.883-.529-1.885-.923-2.944-.389-1.045-.832-2.157-1.19-3.203-.36-1.047-.652-2.08-.735-2.996-.083-.91.034-1.798.605-2.458.566-.653 1.4-.906 2.293-.96"
-          stroke-width=".8"
-        />
-        {/* Left eye */}
-        <circle cx="7.75" cy="8.75" r="2.97" stroke-width=".65" />
-        {/* Right eye */}
-        <circle cx="12.27" cy="10.12" r="2.97" stroke-width=".65" />
-        {/* Pupils — small filled dots, no stroke */}
-        <circle cx="7.2" cy="8.75" r=".95" fill="currentColor" stroke="none" />
-        <circle cx="11.7" cy="10.12" r=".95" fill="currentColor" stroke="none" />
-        {/* Mouth */}
-        <path
-          d="m11.453 14.64-3.64-.459a.983.983 0 1 0-.245 1.952l3.639.458a.983.983 0 1 0 .246-1.951"
-          stroke-width=".8"
-        />
-      </g>
-      <defs>
-        <clipPath id="kuku-clip">
-          <path fill="#fff" d="M0 0h26v26H0z" />
-        </clipPath>
-      </defs>
     </svg>
   );
 }

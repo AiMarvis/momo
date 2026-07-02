@@ -64,7 +64,7 @@ describe("ai_chat agent_provider", () => {
     expect(agent.agentActionsBecomeSetupCtas()).toBe(true);
   });
 
-  it("keeps existing AI chat available when Momo agent setup is required", async () => {
+  it("keeps AI chat unavailable when Codex setup is required", async () => {
     const agent = await loadAgentProviderModule();
 
     expect(agent.agentProviderState.providerStatus).toBe("setup_required");
@@ -73,13 +73,68 @@ describe("ai_chat agent_provider", () => {
         apiKeyMissing: false,
         remoteLoginRequired: false,
       }),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       agent.shouldRenderExistingAiChatSurface({
         apiKeyMissing: true,
         remoteLoginRequired: false,
       }),
     ).toBe(false);
+  });
+
+  it("does not promote OpenAI BYOK to the active chat provider", async () => {
+    mockInvoke.mockImplementation(async (command: string) => {
+      if (command === "agent_check_codex_readiness") {
+        return {
+          provider: "codex_cli",
+          status: "codex_cli_not_found",
+          ready: false,
+          checkName: "codex login status",
+          exitCode: null,
+          timedOut: false,
+          checkedAtMs: 1,
+        };
+      }
+      if (command === "agent_get_openai_api_key_status") return { configured: true };
+      throw new Error(`unexpected invoke: ${command}`);
+    });
+
+    const agent = await loadAgentProviderModule();
+
+    await agent.refreshAgentProviderStatus();
+
+    expect(agent.agentProviderState.openai.configured).toBe(true);
+    expect(agent.agentProviderState.providerStatus).toBe("setup_required");
+  });
+
+  it("keeps AI chat available with Codex ready even when legacy providers are missing", async () => {
+    mockInvoke.mockImplementation(async (command: string) => {
+      if (command === "agent_check_codex_readiness") {
+        return {
+          provider: "codex_cli",
+          status: "ready",
+          ready: true,
+          checkName: "codex login status",
+          exitCode: 0,
+          timedOut: false,
+          checkedAtMs: 5,
+        };
+      }
+      if (command === "agent_get_openai_api_key_status") return { configured: false };
+      throw new Error(`unexpected invoke: ${command}`);
+    });
+
+    const agent = await loadAgentProviderModule();
+
+    await agent.refreshAgentProviderStatus();
+
+    expect(agent.agentProviderState.providerStatus).toBe("codex_cli");
+    expect(
+      agent.shouldRenderExistingAiChatSurface({
+        apiKeyMissing: true,
+        remoteLoginRequired: false,
+      }),
+    ).toBe(true);
   });
 
   it("dismisses the agent setup prompt without enabling unavailable agent actions", async () => {

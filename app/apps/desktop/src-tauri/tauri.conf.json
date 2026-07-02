@@ -1,18 +1,18 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Kuku",
+  "productName": "Momo",
   "version": "0.5.8",
-  "identifier": "mom.kuku.app",
+  "identifier": "mom.momo.app",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:5173",
+    "devUrl": "http://127.0.0.1:1420",
     "beforeDevCommand": "pnpm --filter @kuku/desktop dev",
     "beforeBuildCommand": "pnpm --filter @kuku/desktop build"
   },
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": ["kuku", "com.kuku.app"]
+        "schemes": ["momo", "com.momo.app", "kuku", "com.kuku.app"]
       }
     },
     "updater": {
@@ -26,7 +26,7 @@
     },
     "windows": [
       {
-        "title": "Kuku",
+        "title": "Momo",
         "width": 1100,
         "height": 720,
         "minWidth": 900,

@@ -50,7 +50,7 @@ export default function App() {
   });
 
   createEffect(() => {
-    if (vaultState.rootPath && filesState.tabs.length === 0) {
+    if (filesState.tabs.length === 0) {
       openMomoSurface("today");
     }
   });
@@ -142,8 +142,9 @@ export default function App() {
     try {
       await initSettings();
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       // eslint-disable-next-line no-console
-      console.error("[Settings] Failed to initialize settings", error);
+      console.error("[Settings] Failed to initialize settings", message);
     }
 
     await bootstrapPlugins();
@@ -166,8 +167,10 @@ export default function App() {
       if (lastVault) {
         await openVault(lastVault);
       }
-    } catch {
-      // Ignore restore errors and let the user open a vault manually.
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // eslint-disable-next-line no-console
+      console.warn("[Vault] Failed to restore last vault", message);
     }
   }
 

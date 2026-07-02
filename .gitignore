@@ -3,5 +3,7 @@ app/node_modules
 **/node_modules
 **/.vite
 **/.turbo
+.omo/
+.superpowers/
 app/packages/contract/.bin
 app/packages/contract/.cargo-tools

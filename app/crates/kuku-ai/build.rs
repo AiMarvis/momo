@@ -1,6 +1,5 @@
 const COMMANDS: &[&str] = &[
     "ai_new_session",
-    "ai_send_message",
     "ai_cancel",
     "ai_get_config",
     "ai_set_config",

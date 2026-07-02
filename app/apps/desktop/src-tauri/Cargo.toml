@@ -1,5 +1,5 @@
 [package]
-name = "kuku-app"
+name = "momo"
 version = "0.0.0"
 edition = "2024"
 publish = false
@@ -33,7 +33,7 @@ base64 = "0.22"
 bip39 = "2"
 rusqlite = { version = "0.32", features = ["bundled"] }
 dirs = "6"
-tokio = { version = "1", features = ["fs", "process", "rt", "sync", "time"] }
+tokio = { version = "1", features = ["fs", "io-util", "process", "rt", "sync", "time"] }
 blake3 = "1"
 notify = "8.0"
 parking_lot = "0.12"

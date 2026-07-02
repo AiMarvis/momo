@@ -12,7 +12,6 @@
   font-display: swap;
 }
 
-/* Landing / marketing copy (see .lp-root, .lp-marketing); app mockup (.am-root) keeps system UI fonts */
 @font-face {
   font-family: "SUIT Variable";
   font-weight: 100 900;

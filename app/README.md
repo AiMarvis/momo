@@ -1,9 +1,9 @@
 <div align="center">
   <h1 align="center">
-    <a href="https://kuku.mom">
-      <img src="assets/logo/logo.svg" alt="Kuku logo" width="42" align="center">
+    <a href=".">
+      <img src="assets/logo/logo.png" alt="Momo logo" width="42" align="center">
     </a>
-    Kuku
+    Momo
   </h1>
 
   <p align="center">
@@ -12,41 +12,37 @@
   </p>
 
   <p align="center">
-    <a href="https://github.com/kuku-mom/kuku/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-f97316.svg" alt="License MIT"></a>&nbsp;
-    <a href="https://github.com/kuku-mom/kuku/releases"><img src="https://img.shields.io/github/v/release/kuku-mom/kuku?label=release&color=2563eb" alt="Latest release"></a>&nbsp;
-    <a href="https://deepwiki.com/kuku-mom/kuku"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>&nbsp;
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-f97316.svg" alt="License MIT"></a>&nbsp;
     <img src="https://img.shields.io/badge/platform-macOS-111827?logo=apple&logoColor=white" alt="macOS">&nbsp;
     <img src="https://img.shields.io/badge/built%20with-Tauri%20%2B%20SolidJS-24c8db" alt="Built with Tauri and SolidJS">
   </p>
 
   <p align="center">
-    <a href="https://www.producthunt.com/products/kuku?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-kuku-open-source" target="_blank" rel="noopener noreferrer"><img alt="Kuku: open source - Your open-source, local second brain for every AI | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1142063&amp;theme=light&amp;t=1778234266983"></a>
+    <img alt="Momo open source Markdown workspace" width="250" height="54" src="https://img.shields.io/badge/Momo-open%20source-f97316">
   </p>
 
   <p align="center">
-    <a href="https://kuku.mom"><strong>Website</strong></a> ·
-    <a href="https://github.com/kuku-mom/kuku/releases"><strong>Download</strong></a> ·
-    <a href="https://deepwiki.com/kuku-mom/kuku"><strong>DeepWiki</strong></a> ·
-    <a href="https://www.producthunt.com/products/kuku"><strong>Product Hunt</strong></a> ·
-    <a href="https://kuku.mom/roadmap"><strong>Roadmap</strong></a> ·
+    <a href="apps/web"><strong>Website</strong></a> ·
+    <a href="docs/development.md"><strong>Development</strong></a> ·
+    <a href="docs"><strong>Docs</strong></a> ·
     <a href="docs/development.md"><strong>Development</strong></a> ·
     <a href="README_ko.md"><strong>한국어</strong></a>
   </p>
 
   <p align="center">
-    <a href="https://kuku.mom">
-      <img src="assets/readme/kuku-desktop-vault.png" alt="Kuku desktop app screenshot" width="960">
+    <a href=".">
+      <img src="assets/readme/kuku-desktop-vault.png" alt="Momo desktop app screenshot" width="960">
     </a>
   </p>
 </div>
 
 <p align="center">
-  ⭐ <em>If Kuku feels useful or interesting, a GitHub star helps the project reach more people.</em>
+  ⭐ <em>If Momo feels useful or interesting, a GitHub star helps the project reach more people.</em>
 </p>
 
-## What Is Kuku?
+## What Is Momo?
 
-Kuku is an open-source Markdown app for people who want their notes to stay portable, private, and useful to AI. It edits ordinary `.md` files in a local vault, then layers search, graph navigation, AI assistance, Second Brain workflows, and encrypted sync on top.
+Momo is an open-source Markdown app for people who want their notes to stay portable, private, and useful to AI. It edits ordinary `.md` files in a local vault, then layers search, graph navigation, AI assistance, Second Brain workflows, and encrypted sync on top.
 
 The project is not just a desktop app. This repository includes the macOS client, web app, Go server, protobuf contracts, Rust AI/indexing crates, and Docker infrastructure needed to inspect or self-host the system.
 
@@ -56,7 +52,7 @@ The project is not just a desktop app. This repository includes the macOS client
 - **AI should be reviewable**: AI can read, search, and propose changes, but edits flow through approval and diffs.
 - **Knowledge should improve explicitly**: decision documents turn AI proposals into traceable memory and wiki updates.
 - **Infrastructure should be inspectable**: server, sync, contracts, and deployment code live in the open.
-- **Cloud should be optional**: use Kuku locally, sign in for managed convenience, or self-host the stack yourself.
+- **Cloud should be optional**: use Momo locally, sign in for managed convenience, or self-host the stack yourself.
 
 ## Highlights
 
@@ -71,14 +67,7 @@ The project is not just a desktop app. This repository includes the macOS client
 
 The official build is currently available for macOS.
 
-- **Recommended: download from the website**: visit [kuku.mom](https://www.kuku.mom/) and download the latest macOS build.
-- **Homebrew**: install from the Kuku tap.
-
-  ```sh
-  brew install kuku-mom/kuku/kuku
-  ```
-
-- **GitHub Releases**: download the DMG directly from [GitHub Releases](https://github.com/kuku-mom/kuku/releases).
+- **Recommended**: build locally for now, or wire the release links after the Momo distribution repo is ready.
 
 Platform status:
 
@@ -88,18 +77,17 @@ Platform status:
 
 ## Open Source
 
-Kuku is built as a full-stack open-source project, not a thin client around a closed service. If you want to explore how it works, start with:
+Momo is built as a full-stack open-source project, not a thin client around a closed service. If you want to explore how it works, start with:
 
-- [DeepWiki codebase guide](https://deepwiki.com/kuku-mom/kuku)
 - [Development and self-hosting notes](docs/development.md)
-- [Public roadmap](https://www.kuku.mom/roadmap/)
+- [Planning docs](docs)
 
 ## Contributing
 
 Bug reports, feature ideas, documentation improvements, and pull requests are welcome. For larger changes, please open an issue first so we can align on direction.
 
-Kuku's core principle is simple: your files belong to you, and the tool should not take that control away.
+Momo's core principle is simple: your files belong to you, and the tool should not take that control away.
 
 ## License
 
-[MIT](LICENSE) © kuku-mom
+[MIT](LICENSE) © Momo

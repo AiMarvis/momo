@@ -2,10 +2,13 @@ import { lazy } from "solid-js";
 
 import type { KukuPlugin } from "~/plugins/types";
 
-import { MOMO_TODAY_TAB_TYPE } from "./navigation";
+import { MOMO_CALENDAR_PANEL_ID, MOMO_TODAY_TAB_TYPE } from "./navigation";
 
 const TodayDashboardView = lazy(() =>
   import("./today_dashboard").then((module) => ({ default: module.TodayDashboard })),
+);
+const CalendarPanelView = lazy(() =>
+  import("./calendar_panel").then((module) => ({ default: module.CalendarPanel })),
 );
 const MomoAgentPanelView = lazy(() =>
   import("./agent_panel").then((module) => ({ default: module.MomoAgentPanel })),
@@ -25,6 +28,14 @@ const momoDashboardPlugin: KukuPlugin = {
       tabType: MOMO_TODAY_TAB_TYPE,
       component: TodayDashboardView,
       order: 5,
+    },
+    {
+      id: MOMO_CALENDAR_PANEL_ID,
+      label: "Calendar",
+      icon: "calendar",
+      location: { slot: "rightPanel" },
+      component: CalendarPanelView,
+      order: 10,
     },
     {
       id: "momo-dashboard.agent",

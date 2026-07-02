@@ -106,11 +106,11 @@ interface PersistedSettings {
 
 // ── Defaults ──
 
-const DEFAULT_DISABLED_PLUGINS = ["voxel-graph", "knowledge"];
+const DEFAULT_DISABLED_PLUGINS = ["voxel-graph"];
 
 const DEFAULTS: Settings = {
   lastOpenedVault: null,
-  disabledPlugins: ["voxel-graph", "knowledge"],
+  disabledPlugins: ["voxel-graph"],
   disabledPluginDefaultsApplied: [],
   general: {
     autoSave: true,

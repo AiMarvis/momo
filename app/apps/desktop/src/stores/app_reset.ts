@@ -8,6 +8,7 @@ import { resetLayoutState } from "~/stores/layout";
 import { resetSettings } from "~/stores/settings";
 import { resetTyping } from "~/stores/typing";
 import { clearConfiguredVault } from "~/stores/vault";
+import { resetWorkOsState } from "~/plugins/builtin/momo_dashboard/work_os_store";
 
 const DEFAULT_SETTINGS_TARGET: SettingsTarget = {
   kind: "category",
@@ -31,6 +32,7 @@ async function resetAllDesktopState(): Promise<void> {
   resetEditorState();
   resetDiffStore();
   resetTyping();
+  resetWorkOsState();
   await runPluginResets();
 }
 

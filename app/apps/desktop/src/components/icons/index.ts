@@ -16,6 +16,7 @@ export {
   ChevronIcon,
   CheckIcon,
   CloseIcon,
+  CalendarIcon,
   EyeIcon,
   EyeOffIcon,
   EllipsisVerticalIcon,
@@ -28,8 +29,8 @@ export {
   SearchIcon,
   SettingsIcon,
   MessageSquareIcon,
-  KukuIcon,
 } from "./general_icons";
+export { KukuIcon } from "./momo_icon";
 export { KukuLogo } from "./kuku_logo";
 export { KukuLogoSmall } from "./kuku_logo_small";
 export {

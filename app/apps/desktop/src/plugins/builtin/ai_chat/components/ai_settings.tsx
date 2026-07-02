@@ -9,7 +9,9 @@ import {
   saveOpenAiApiKey,
 } from "../agent_provider";
 import { chatState, loadConfig, loadTools, saveConfig } from "../chat_store";
+import { normalizeChatMode, normalizeCodexSandbox } from "../config";
 import { formatToolIdentity, getToolInfo } from "../tool_identity";
+import type { ChatMode, CodexSandboxMode } from "../types";
 import { ChevronIcon, EyeIcon, EyeOffIcon } from "~/components/icons";
 import ScrollArea from "~/components/scroll_area";
 import {
@@ -49,6 +51,9 @@ function AiSettings(): JSX.Element {
   const [provider, setProvider] = createSignal<"gemini" | "remote">("gemini");
   const [model, setModel] = createSignal("");
   const [serverUrl, setServerUrl] = createSignal("");
+  const [defaultMode, setDefaultMode] = createSignal<ChatMode>("ask");
+  const [codexModel, setCodexModel] = createSignal("");
+  const [codexSandbox, setCodexSandbox] = createSignal<CodexSandboxMode>("read-only");
   const [openAiApiKey, setOpenAiApiKey] = createSignal("");
   const [showApiKey, setShowApiKey] = createSignal(false);
   const settingsRefreshToken = useSettingsRefreshToken();
@@ -69,6 +74,9 @@ function AiSettings(): JSX.Element {
       setProvider(chatState.config.provider);
       setModel(chatState.config.model);
       setServerUrl(chatState.config.serverUrl);
+      setDefaultMode(chatState.config.defaultMode);
+      setCodexModel(chatState.config.codexModel);
+      setCodexSandbox(chatState.config.codexSandbox);
     }
   });
 
@@ -77,7 +85,10 @@ function AiSettings(): JSX.Element {
     return (
       provider() !== chatState.config.provider ||
       apiKey() !== chatState.config.apiKey ||
-      serverUrl() !== chatState.config.serverUrl
+      serverUrl() !== chatState.config.serverUrl ||
+      defaultMode() !== chatState.config.defaultMode ||
+      codexModel().trim() !== chatState.config.codexModel ||
+      codexSandbox() !== chatState.config.codexSandbox
     );
   });
 
@@ -91,9 +102,6 @@ function AiSettings(): JSX.Element {
     if (agentProviderState.providerStatus === "codex_cli") {
       return t("settings.plugin.ai_chat.agent_provider.codex_ready");
     }
-    if (agentProviderState.providerStatus === "openai_api") {
-      return t("settings.plugin.ai_chat.agent_provider.openai_ready");
-    }
     return t("settings.plugin.ai_chat.agent_provider.setup_required");
   });
 
@@ -106,7 +114,16 @@ function AiSettings(): JSX.Element {
           variant="primary"
           disabled={chatState.config.saving}
           class={isUnsaved() ? "ring-2 ring-warning/60 ring-offset-1 ring-offset-bg-primary" : ""}
-          onClick={() => void saveConfig(provider(), apiKey(), serverUrl())}
+          onClick={() =>
+            void saveConfig({
+              provider: provider(),
+              apiKey: apiKey(),
+              serverUrl: serverUrl(),
+              defaultMode: defaultMode(),
+              codexModel: codexModel(),
+              codexSandbox: codexSandbox(),
+            })
+          }
         >
           {saveButtonLabel()}
         </SettingsToolbarAction>
@@ -192,6 +209,63 @@ function AiSettings(): JSX.Element {
               </div>
             }
           />
+          <div class="grid gap-2 @lg:grid-cols-2">
+            <SettingsFieldRow
+              stacked
+              label={t("settings.plugin.ai_chat.codex_settings.default_mode.label")}
+              description={t("settings.plugin.ai_chat.codex_settings.default_mode.description")}
+              control={
+                <SettingsSelect
+                  options={[
+                    { value: "ask", label: t("chat.mode.ask.title") },
+                    { value: "agent", label: t("chat.mode.agent.title") },
+                    { value: "inline", label: t("chat.mode.inline.title") },
+                  ]}
+                  value={defaultMode()}
+                  onChange={(value) => setDefaultMode(normalizeChatMode(value))}
+                />
+              }
+            />
+            <SettingsFieldRow
+              stacked
+              label={t("settings.plugin.ai_chat.codex_settings.model.label")}
+              description={t("settings.plugin.ai_chat.codex_settings.model.description")}
+              control={
+                <SettingsInput
+                  type="text"
+                  value={codexModel()}
+                  placeholder={t("settings.plugin.ai_chat.codex_settings.model.placeholder")}
+                  spellcheck={false}
+                  onInput={(event) => setCodexModel(event.currentTarget.value)}
+                />
+              }
+            />
+            <SettingsFieldRow
+              stacked
+              label={t("settings.plugin.ai_chat.codex_settings.sandbox.label")}
+              description={t("settings.plugin.ai_chat.codex_settings.sandbox.description")}
+              control={
+                <SettingsSelect
+                  options={[
+                    {
+                      value: "read-only",
+                      label: t("settings.plugin.ai_chat.codex_settings.sandbox.read_only"),
+                    },
+                    {
+                      value: "workspace-write",
+                      label: t("settings.plugin.ai_chat.codex_settings.sandbox.workspace_write"),
+                    },
+                    {
+                      value: "danger-full-access",
+                      label: t("settings.plugin.ai_chat.codex_settings.sandbox.danger_full_access"),
+                    },
+                  ]}
+                  value={codexSandbox()}
+                  onChange={(value) => setCodexSandbox(normalizeCodexSandbox(value))}
+                />
+              }
+            />
+          </div>
           <SettingsBanner
             tone="warning"
             title={t("settings.plugin.ai_chat.openai.cost_title")}

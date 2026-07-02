@@ -42,18 +42,18 @@ describe("settings store plugin defaults", () => {
     mockInvoke.mockReset();
   });
 
-  it("defaults Second Brain to disabled", async () => {
+  it("defaults Second Brain to enabled", async () => {
     const { settingsState } = await loadSettingsModule();
 
-    expect(settingsState.disabledPlugins).toContain("knowledge");
+    expect(settingsState.disabledPlugins).not.toContain("knowledge");
   });
 
-  it("disables Second Brain for previously enabled persisted settings", async () => {
+  it("does not reenable Second Brain when persisted settings keep it disabled", async () => {
     mockInvoke.mockImplementation(async (command: string) => {
       if (command === "app_settings_get") {
         return {
-          disabled_plugins: ["voxel-graph"],
-          disabled_plugin_defaults_applied: ["voxel-graph"],
+          disabled_plugins: ["voxel-graph", "knowledge"],
+          disabled_plugin_defaults_applied: ["voxel-graph", "knowledge"],
         };
       }
       if (command === "app_settings_set") return undefined;
@@ -66,14 +66,6 @@ describe("settings store plugin defaults", () => {
 
     expect(settingsState.disabledPlugins).toEqual(["voxel-graph", "knowledge"]);
     expect(settingsState.disabledPluginDefaultsApplied).toEqual(["voxel-graph", "knowledge"]);
-    expect(mockInvoke).toHaveBeenCalledWith(
-      "app_settings_set",
-      expect.objectContaining({
-        settings: expect.objectContaining({
-          disabled_plugins: ["voxel-graph", "knowledge"],
-          disabled_plugin_defaults_applied: ["voxel-graph", "knowledge"],
-        }),
-      }),
-    );
+    expect(mockInvoke).not.toHaveBeenCalledWith("app_settings_set", expect.anything());
   });
 });

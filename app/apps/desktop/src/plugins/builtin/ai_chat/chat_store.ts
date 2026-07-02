@@ -3,14 +3,21 @@ import { batch } from "solid-js";
 import { createStore } from "solid-js/store";
 
 import { openApprovalDiff } from "./approval_diff";
+import { agentProviderState } from "./agent_provider";
 import {
   AI_CHAT_SETTINGS_PLUGIN_ID,
   AI_CHAT_SECURE_KEYS,
+  DEFAULT_CHAT_MODE,
+  DEFAULT_CODEX_APPROVAL_POLICY,
+  DEFAULT_CODEX_MODEL,
+  DEFAULT_CODEX_SANDBOX,
+  DEFAULT_CODEX_WEB_SEARCH,
   DEFAULT_MODEL,
   DEFAULT_PROVIDER,
   DEFAULT_PROXY_TIMEOUT_MS,
   DEFAULT_ROUND_LIMIT,
   DEFAULT_SERVER_URL,
+  createCodexConfigFromAiConfig,
   createDefaultAiConfig,
   normalizeAiConfig,
 } from "./config";
@@ -21,6 +28,8 @@ import { prepareSelectedTextForSend } from "./selected_text_context";
 import type {
   AiConfig,
   ChatApprovalMessage,
+  CodexChatConfig,
+  CodexSandboxMode,
   ChatFileAttachmentDraft,
   ChatMessage,
   ChatMode,
@@ -57,6 +66,11 @@ const [chatState, setChatState] = createStore<ChatStoreState>({
     provider: DEFAULT_PROVIDER,
     serverUrl: DEFAULT_SERVER_URL,
     model: DEFAULT_MODEL,
+    defaultMode: DEFAULT_CHAT_MODE,
+    codexModel: DEFAULT_CODEX_MODEL,
+    codexSandbox: DEFAULT_CODEX_SANDBOX,
+    codexApprovalPolicy: DEFAULT_CODEX_APPROVAL_POLICY,
+    codexWebSearch: DEFAULT_CODEX_WEB_SEARCH,
     rawConfig: {},
     loading: false,
     saving: false,
@@ -68,6 +82,19 @@ const [chatState, setChatState] = createStore<ChatStoreState>({
 });
 let lastResponding = false;
 
+interface CodexChatResponse {
+  readonly content: string;
+}
+
+interface SaveConfigInput {
+  readonly provider: "gemini" | "remote";
+  readonly apiKey: string;
+  readonly serverUrl: string;
+  readonly defaultMode: ChatMode;
+  readonly codexModel: string;
+  readonly codexSandbox: CodexSandboxMode;
+}
+
 setContextKey("aiResponding", false);
 
 function createDefaultConfigState(): ChatStoreState["config"] {
@@ -76,6 +103,11 @@ function createDefaultConfigState(): ChatStoreState["config"] {
     provider: DEFAULT_PROVIDER,
     serverUrl: DEFAULT_SERVER_URL,
     model: DEFAULT_MODEL,
+    defaultMode: DEFAULT_CHAT_MODE,
+    codexModel: DEFAULT_CODEX_MODEL,
+    codexSandbox: DEFAULT_CODEX_SANDBOX,
+    codexApprovalPolicy: DEFAULT_CODEX_APPROVAL_POLICY,
+    codexWebSearch: DEFAULT_CODEX_WEB_SEARCH,
     rawConfig: {},
     loading: false,
     saving: false,
@@ -117,6 +149,10 @@ function createSessionState(id: string, mode: ChatMode): ChatSessionState {
 
 function isSessionBusy(session: ChatSessionState | null | undefined): boolean {
   return session != null && BUSY_SESSION_STATUSES.includes(session.status);
+}
+
+function createCodexChatConfig(): CodexChatConfig {
+  return createCodexConfigFromAiConfig(chatState.config);
 }
 
 function setSelectedMode(mode: ChatMode): void {
@@ -569,7 +605,7 @@ async function sendMessage(content: string, options: SendMessageOptions = {}): P
   if (!trimmed || chatState.isCreatingSession || chatState.isSendingMessage) return false;
 
   const active = getActiveSession();
-  if (active && active.status !== "idle") return false;
+  if (isSessionBusy(active)) return false;
 
   const sessionId = await ensureSession();
   if (!sessionId) return false;
@@ -605,16 +641,38 @@ async function sendMessage(content: string, options: SendMessageOptions = {}): P
     setChatState("sessions", sessionId, "error", null);
     setChatState("sessions", sessionId, "finishReason", null);
 
-    await invoke<void>("plugin:kuku-ai|ai_send_message", {
-      sessionId,
-      mode: chatState.selectedMode,
-      content: trimmed,
-      editorContext: {
-        ...editorContext,
-        selectedText: preparedSelection.selectedText,
-        embeddedFiles: preparedFiles.embeddedFiles,
+    if (agentProviderState.providerStatus !== "codex_cli") {
+      const message = "Codex CLI is not ready";
+      setError(sessionId, { sessionId, message });
+      appendSystemMessage(sessionId, message);
+      return true;
+    }
+
+    const response = await invoke<CodexChatResponse>("agent_run_codex_chat", {
+      request: {
+        content: trimmed,
+        mode: chatState.selectedMode,
+        codexConfig: createCodexChatConfig(),
+        editorContext: {
+          ...editorContext,
+          selectedText: preparedSelection.selectedText,
+          embeddedFiles: preparedFiles.embeddedFiles,
+        },
       },
     });
+    const responseContent = response.content.trim();
+    if (!responseContent) {
+      const message = "Codex CLI returned no response";
+      setError(sessionId, { sessionId, message });
+      appendSystemMessage(sessionId, message);
+      return true;
+    }
+    appendTextMessage(sessionId, {
+      kind: "text",
+      role: "assistant",
+      content: responseContent,
+    });
+    setSessionStatus(sessionId, "idle");
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -669,6 +727,16 @@ async function loadConfig(): Promise<void> {
     setChatState("config", "provider", config.provider ?? DEFAULT_PROVIDER);
     setChatState("config", "serverUrl", config.serverUrl);
     setChatState("config", "model", config.model);
+    setChatState("config", "defaultMode", config.defaultMode ?? DEFAULT_CHAT_MODE);
+    setChatState("config", "codexModel", config.codexModel ?? DEFAULT_CODEX_MODEL);
+    setChatState("config", "codexSandbox", config.codexSandbox ?? DEFAULT_CODEX_SANDBOX);
+    setChatState(
+      "config",
+      "codexApprovalPolicy",
+      config.codexApprovalPolicy ?? DEFAULT_CODEX_APPROVAL_POLICY,
+    );
+    setChatState("config", "codexWebSearch", config.codexWebSearch ?? DEFAULT_CODEX_WEB_SEARCH);
+    setChatState("selectedMode", config.defaultMode ?? DEFAULT_CHAT_MODE);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const defaults = createDefaultAiConfig();
@@ -676,6 +744,20 @@ async function loadConfig(): Promise<void> {
     setChatState("config", "provider", defaults.provider ?? DEFAULT_PROVIDER);
     setChatState("config", "serverUrl", defaults.serverUrl ?? DEFAULT_SERVER_URL);
     setChatState("config", "model", defaults.model);
+    setChatState("config", "defaultMode", defaults.defaultMode ?? DEFAULT_CHAT_MODE);
+    setChatState("config", "codexModel", defaults.codexModel ?? DEFAULT_CODEX_MODEL);
+    setChatState("config", "codexSandbox", defaults.codexSandbox ?? DEFAULT_CODEX_SANDBOX);
+    setChatState(
+      "config",
+      "codexApprovalPolicy",
+      defaults.codexApprovalPolicy ?? DEFAULT_CODEX_APPROVAL_POLICY,
+    );
+    setChatState(
+      "config",
+      "codexWebSearch",
+      defaults.codexWebSearch ?? DEFAULT_CODEX_WEB_SEARCH,
+    );
+    setChatState("selectedMode", defaults.defaultMode ?? DEFAULT_CHAT_MODE);
     setChatState("config", "rawConfig", {});
     setChatState("config", "error", message);
   } finally {
@@ -683,33 +765,50 @@ async function loadConfig(): Promise<void> {
   }
 }
 
-async function saveConfig(
-  nextProvider: "gemini" | "remote",
-  nextApiKey: string,
-  nextServerUrl: string,
-): Promise<void> {
+async function saveConfig(input: SaveConfigInput): Promise<boolean> {
   setChatState("config", "saving", true);
   setChatState("config", "error", null);
   try {
     const currentConfig = chatState.config.rawConfig as Partial<AiConfig>;
     const nextConfig: AiConfig = {
-      provider: nextProvider,
-      apiKey: nextApiKey || null,
+      provider: input.provider,
+      apiKey: input.apiKey || null,
       model: DEFAULT_MODEL,
-      serverUrl: nextServerUrl || DEFAULT_SERVER_URL,
+      serverUrl: input.serverUrl || DEFAULT_SERVER_URL,
+      defaultMode: input.defaultMode,
+      codexModel: input.codexModel.trim(),
+      codexSandbox: input.codexSandbox,
+      codexApprovalPolicy: DEFAULT_CODEX_APPROVAL_POLICY,
+      codexWebSearch: DEFAULT_CODEX_WEB_SEARCH,
       roundLimit: currentConfig.roundLimit ?? DEFAULT_ROUND_LIMIT,
       proxyToolTimeoutMs: currentConfig.proxyToolTimeoutMs ?? DEFAULT_PROXY_TIMEOUT_MS,
     };
     await savePluginSettings(AI_CHAT_SETTINGS_PLUGIN_ID, nextConfig, [...AI_CHAT_SECURE_KEYS]);
     await invoke<void>("plugin:kuku-ai|ai_set_config", { config: nextConfig });
     setChatState("config", "rawConfig", nextConfig as unknown as Record<string, unknown>);
-    setChatState("config", "apiKey", nextApiKey);
-    setChatState("config", "provider", nextProvider);
-    setChatState("config", "serverUrl", nextServerUrl || DEFAULT_SERVER_URL);
+    setChatState("config", "apiKey", input.apiKey);
+    setChatState("config", "provider", input.provider);
+    setChatState("config", "serverUrl", input.serverUrl || DEFAULT_SERVER_URL);
     setChatState("config", "model", nextConfig.model);
+    setChatState("config", "defaultMode", nextConfig.defaultMode ?? DEFAULT_CHAT_MODE);
+    setChatState("config", "codexModel", nextConfig.codexModel ?? DEFAULT_CODEX_MODEL);
+    setChatState("config", "codexSandbox", nextConfig.codexSandbox ?? DEFAULT_CODEX_SANDBOX);
+    setChatState(
+      "config",
+      "codexApprovalPolicy",
+      nextConfig.codexApprovalPolicy ?? DEFAULT_CODEX_APPROVAL_POLICY,
+    );
+    setChatState(
+      "config",
+      "codexWebSearch",
+      nextConfig.codexWebSearch ?? DEFAULT_CODEX_WEB_SEARCH,
+    );
+    setChatState("selectedMode", nextConfig.defaultMode ?? DEFAULT_CHAT_MODE);
+    return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     setChatState("config", "error", message);
+    return false;
   } finally {
     setChatState("config", "saving", false);
   }
